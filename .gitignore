@@ -1,0 +1,12 @@
+##Ignoe IntelliJ temporary project files
+
+.idea
+
+##Ignore cmake debug builds
+
+cmake-build-debug
+
+##Ignore debug and test files
+
+test
+debug
