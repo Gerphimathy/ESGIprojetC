@@ -59,14 +59,87 @@ int createWindow(int argc, char **argv){
 }
 
 typedef struct commandLineParameters{///List of parameters parsed from command line
-    short hasGui; //Uses GUI ?
+    char hasGui[10]; //Uses GUI ? "true/false"
 
 } commandLineParameters;
 
-void parseArgs(commandLineParameters* params, int argc, char **argv){
+///Putting this in its own .h/.c could be useful
 
-    params->hasGui = 1; //True by default unless specified
-    //TODO: Config file where this is modifiable, parse a config file
+typedef struct configType {
+    char name[20]; //name of the config, written to the file to be more readable
+    char description[300];//default description of the config, printed out when re-creating config file
+    char defaultValue[10]; //default value if it's not present in the config/file needs to be built
+
+    //"%s = %s\n%s\n\n"
+
+    char value[10]; //value of the config, acquired when parsing
+}configType;
+
+///Putting this in its own .h/.c could be useful
+
+typedef struct fileConfig {
+    FILE *configFile;
+
+    char path[255]; //default path of config file (ex: build/config/masterConf)
+
+    configType hasGui; //list of assigned configs
+    //TODO: Make a chained list out of this
+
+}fileConfig;
+
+///Putting this in its own .h/.c could be useful
+void assignConfigs(fileConfig* targetConfig){//Loads default values into configuration structure to compare when parsing
+
+    //TODO: Add defaults when adding new config
+    strcpy(targetConfig->hasGui.name, "Uses_GUI");
+    strcpy(targetConfig->hasGui.description, "#Defines Default GUI mode: 1 for GUI, 0 for command lines");
+    strcpy(targetConfig->hasGui.defaultValue, "true");
+
+}
+
+void buildConfigFile(fileConfig *targetConfig){
+    targetConfig->configFile = fopen(targetConfig->path, "wb+");
+
+    //TODO: Add fprintfs when adding new config
+    fprintf(targetConfig->configFile, "%s = %s\n%s\n\n",
+            targetConfig->hasGui.name, targetConfig->hasGui.defaultValue,targetConfig->hasGui.description);
+
+}
+
+///Putting this in its own .h/.c could be useful
+void parseConfigFile(fileConfig* config){//Receives config pointer (needs path already filled), builds the structure
+    assignConfigs(config);
+
+    config->configFile = fopen(config->path, "rb+");
+
+    if (config->configFile == NULL) buildConfigFile(config);
+
+
+
+    char line[2000];
+    fseek(config->configFile, 0, SEEK_SET);
+    int i;
+    char value[10];
+    char name[20];
+    while(fgets(line,2000, config->configFile)!= NULL){
+        strcpy(value,"");
+        strcpy(name,"");
+        if(line[0] != '#'){
+            sscanf(line, "%s = %s", &name, &value);
+            if (strcmp(name, config->hasGui.name)==0){
+                if ((strcmp(value,"true")==0)||(strcmp(value,"false")==0))
+                    strcpy(config->hasGui.value, value);
+                else strcpy(config->hasGui.value, config->hasGui.defaultValue);
+            }
+        }
+        i++;
+    }
+    fclose(config->configFile);
+}
+
+void parseArgs(commandLineParameters* params, fileConfig config, int argc, char **argv){
+
+    strcpy(params->hasGui, config.hasGui.value);
 
     if (argc > 100){//If over 100 arguments, we consider the syntax to be wrong
         printf("Error: Too many arguments");
@@ -81,10 +154,10 @@ void parseArgs(commandLineParameters* params, int argc, char **argv){
                     exit(0);
                     break;
                 case 'l'://non visual, line execution
-                    params->hasGui = 0;//no gui
+                    strcpy(params->hasGui, "false");//no gui
                     break;
                 case 'g'://visual, gtk execution
-                    params->hasGui = 1;//has gui
+                    strcpy(params->hasGui, "true");//has gui
                     break;
                 default://Ignore incorrect parameters
                     break;
@@ -97,12 +170,15 @@ void parseArgs(commandLineParameters* params, int argc, char **argv){
 }
 
 int main(int argc, char **argv) {
-    //TODO: Parse file for configs
+    fileConfig masterConfig;
+    strcpy(masterConfig.path, "config/main.conf");
+    parseConfigFile(&masterConfig);
+
     commandLineParameters lineParams;
 
-    parseArgs(&lineParams, argc, argv);
+    parseArgs(&lineParams, masterConfig, argc, argv);
 
-    if (lineParams.hasGui) createWindow(0, argv);
+    if (strcmp(lineParams.hasGui, "true") == 0) createWindow(0, argv);
 
     return 0;
 }
