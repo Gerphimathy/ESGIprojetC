@@ -8,11 +8,20 @@
 #include "headers/config.h"
 #include "sources/configTypes.c"
 
+/**
+ * @usage receives command line parameters after parsing
+ */
 typedef struct commandLineParameters{///List of parameters parsed from command line
     char hasGui[10]; //Uses GUI ? "true/false"
 
 } commandLineParameters;
 
+/**
+ * @param params -- structure where parameters will be stored once parsed
+ * @param config -- config structure
+ * @param argc -- number of command line parameters
+ * @param argv -- command line parameters
+ */
 void parseArgs(commandLineParameters* params, fileConfig config, int argc, char **argv){
 
     strcpy(params->hasGui, config.hasGui.value);
@@ -45,6 +54,11 @@ void parseArgs(commandLineParameters* params, fileConfig config, int argc, char 
     }
 }
 
+/**
+ * Parses config file into config structure
+ * Parses command line parameters into parameters structure
+ * Creates Window if hasGui is enabled
+ */
 int main(int argc, char **argv) {
     fileConfig masterConfig;
     strcpy(masterConfig.path, "config/main.conf");
