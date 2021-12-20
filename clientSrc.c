@@ -68,11 +68,10 @@ typedef struct commandLineParameters{///List of parameters parsed from command l
 typedef struct configType {
     char name[20]; //name of the config, written to the file to be more readable
     char description[300];//default description of the config, printed out when re-creating config file
-    char defaultValue[10]; //default value if it's not present in the config/file needs to be built
 
     //"%s = %s\n%s\n\n"
 
-    char value[10]; //value of the config, acquired when parsing
+    char value[10]; //value of the config, acquired when parsing, given a default value when initializing
 }configType;
 
 ///Putting this in its own .h/.c could be useful
@@ -93,7 +92,7 @@ void assignConfigs(fileConfig* targetConfig){//Loads default values into configu
     //TODO: Add defaults when adding new config
     strcpy(targetConfig->hasGui.name, "Uses_GUI");
     strcpy(targetConfig->hasGui.description, "#Defines Default GUI mode: true for GUI, false for command lines");
-    strcpy(targetConfig->hasGui.defaultValue, "true");
+    strcpy(targetConfig->hasGui.value, "true");
 
 }
 
@@ -102,7 +101,7 @@ void buildConfigFile(fileConfig *targetConfig){
 
     //TODO: Add fprintfs when adding new config
     fprintf(targetConfig->configFile, "%s = %s\n%s\n\n",
-            targetConfig->hasGui.name, targetConfig->hasGui.defaultValue,targetConfig->hasGui.description);
+            targetConfig->hasGui.name, targetConfig->hasGui.value,targetConfig->hasGui.description);
 
 }
 
@@ -129,7 +128,6 @@ void parseConfigFile(fileConfig* config){//Receives config pointer (needs path a
             if (strcmp(name, config->hasGui.name)==0){
                 if ((strcmp(value,"true")==0)||(strcmp(value,"false")==0))
                     strcpy(config->hasGui.value, value);
-                else strcpy(config->hasGui.value, config->hasGui.defaultValue);
             }
         }
         i++;
