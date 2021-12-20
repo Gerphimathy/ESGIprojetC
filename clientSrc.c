@@ -58,38 +58,51 @@ int createWindow(int argc, char **argv){
     return status;
 }
 
-void parseArgs(char* target, int argc, char **argv){
-    char flagWrongSyntax = 0;
+typedef struct commandLineParameters{///List of parameters parsed from command line
+    short hasGui; //Uses GUI ?
+
+} commandLineParameters;
+
+void parseArgs(commandLineParameters* params, int argc, char **argv){
+
+    params->hasGui = 1; //True by default unless specified
+    //TODO: Config file where this is modifiable, parse a config file
 
     if (argc > 100){//If over 100 arguments, we consider the syntax to be wrong
-        flagWrongSyntax = 1;
-        strcat(target, "0");
+        printf("Error: Too many arguments");
+        exit(-1);
     }
 
-    for (int i = 1; i < argc && !flagWrongSyntax; ++i) {//We parse each argument
+    for (int i = 1; i < argc; ++i) {//We parse each argument
         if (argv[i][0] == '-'){//If the argument starts with - (parameter)
             switch (argv[i][1]) {//Switch depending on the parameter
                 case 'h'://help
-                    strcat(target, "h");
+                    printf("h\t:\tHelp\nl\t:\tRun without GUI\ng\t:\tRun with GUI\n");
+                    exit(0);
                     break;
                 case 'l'://non visual, line execution
-                    strcat(target, "l");
+                    params->hasGui = 0;//no gui
+                    break;
+                case 'g'://visual, gtk execution
+                    params->hasGui = 1;//has gui
                     break;
                 default://Ignore incorrect parameters
                     break;
             }
         }else{
-            flagWrongSyntax = 1;
-            strcat(target, "0");
+            printf("Arguments formatting error");
+            exit(-1);
         }
     }
 }
 
 int main(int argc, char **argv) {
-    char parsedArguments[255] = "";
-    parseArgs(parsedArguments, argc, argv);
-    fprintf(stdout, "%s", parsedArguments);
-    createWindow(argc, argv);
+    //TODO: Parse file for configs
+    commandLineParameters lineParams;
+
+    parseArgs(&lineParams, argc, argv);
+
+    if (lineParams.hasGui) createWindow(0, argv);
 
     return 0;
 }
