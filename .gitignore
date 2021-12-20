@@ -4,7 +4,7 @@
 
 ##Ignore cmake debug builds
 
-cmake-build-debug
+cmake-build-*
 
 ##Ignore debug and test files
 
