@@ -92,7 +92,7 @@ void assignConfigs(fileConfig* targetConfig){//Loads default values into configu
 
     //TODO: Add defaults when adding new config
     strcpy(targetConfig->hasGui.name, "Uses_GUI");
-    strcpy(targetConfig->hasGui.description, "#Defines Default GUI mode: 1 for GUI, 0 for command lines");
+    strcpy(targetConfig->hasGui.description, "#Defines Default GUI mode: true for GUI, false for command lines");
     strcpy(targetConfig->hasGui.defaultValue, "true");
 
 }
