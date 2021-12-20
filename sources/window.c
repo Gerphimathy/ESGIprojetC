@@ -3,9 +3,26 @@
 #include <gtk/gtk.h>
 #include "../headers/window.h"
 
+/**
+ * @Usage GTK Windows: Actions, creation and activation
+ */
+
+/**
+ * @param action
+ * @param parameter
+ * @param user_data
+ * @usage Destroys Window and Exits with code -1, used when killing the window with ctrl f4
+ */
 void destroy (GSimpleAction *action, GVariant *parameter, gpointer user_data){
     exit(-1);
 }
+
+
+/**
+ * @param client -- Main Window for the client
+ * @param user_data
+ * @usage Activates the main window of the client, links actions and events
+ */
 void activate(GtkApplication *client, gpointer user_data) {
     GtkWidget *clientWindow;
     GtkEventController *controller;
@@ -40,6 +57,13 @@ void activate(GtkApplication *client, gpointer user_data) {
     ///Activate Window
     gtk_window_present(GTK_WINDOW (clientWindow));
 }
+
+/**
+ * @param argc
+ * @param argv
+ * @return status
+ * @usage Creates the main client window then calls activate
+ */
 int createWindow(int argc, char **argv){
     GtkApplication *client;
     int status;
