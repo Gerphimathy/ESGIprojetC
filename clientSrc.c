@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <sqlite3.h>
 
 //TODO: Would be interesting to add these to a specific .h
 void destroy (GSimpleAction *action, GVariant *parameter, gpointer user_data){
