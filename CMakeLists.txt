@@ -9,7 +9,7 @@ add_executable(ProjetC clientSrc.c
         sources/window.c headers/window.h
         sources/config.c sources/config.c headers/config.h
         sources/configTypes.c
-        sources/database.c headers/database.h)
+        sources/database.c headers/database.h sources/databaseTypes.c)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

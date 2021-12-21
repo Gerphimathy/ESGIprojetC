@@ -8,6 +8,7 @@
 #include "headers/config.h"
 #include "sources/configTypes.c"
 #include "headers/database.h"
+#include "sources/databaseTypes.c"
 
 /**
  * @usage receives command line parameters after parsing
@@ -59,17 +60,29 @@ void parseArgs(commandLineParameters* params, fileConfig config, int argc, char 
  * Parses config file into config structure
  * Parses command line parameters into parameters structure
  * Creates Window if hasGui is enabled
+ * Creates a connection to a database & a database handler
  */
 int main(int argc, char **argv) {
+    ///Parse Config File
     fileConfig masterConfig;
     strcpy(masterConfig.path, "config/main.conf");
     parseConfigFile(&masterConfig);
 
+    ///Parse line parameters
     commandLineParameters lineParams;
-
     parseArgs(&lineParams, masterConfig, argc, argv);
 
+    ///Create Window if hasGui parameter is true
     if (strcmp(lineParams.hasGui, "true") == 0) createWindow(0, argv);
+
+    ///Prepare main Database Structure
+    database localDatabase;
+    strcpy(localDatabase.path, "config/localDatabase.db");
+    localDatabase.databaseHandle = prepareDatabase("config/localDatabase.db");
+    localDatabase.databaseConnection = sqlite3_open("config/localDatabase.db", &localDatabase.databaseHandle);
+
+    
+    sqlite3_close(localDatabase.databaseHandle);
 
     return 0;
 }
