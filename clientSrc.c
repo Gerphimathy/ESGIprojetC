@@ -82,7 +82,6 @@ int main(int argc, char **argv) {
     localDatabase.databaseHandle = prepareDatabase("config/localDatabase.db");
     localDatabase.databaseConnection = sqlite3_open("config/localDatabase.db", &localDatabase.databaseHandle);
 
-    
     sqlite3_close(localDatabase.databaseHandle);
 
     return 0;
