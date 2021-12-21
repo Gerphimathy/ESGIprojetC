@@ -7,6 +7,7 @@
 #include "headers/window.h"
 #include "headers/config.h"
 #include "sources/configTypes.c"
+#include "headers/database.h"
 
 /**
  * @usage receives command line parameters after parsing
