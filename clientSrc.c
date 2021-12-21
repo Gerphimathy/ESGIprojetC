@@ -10,6 +10,7 @@
 #include "sources/configTypes.c"
 #include "headers/database.h"
 #include "sources/databaseTypes.c"
+#include "headers/jsonParse.h"
 
 /**
  * @usage receives command line parameters after parsing
