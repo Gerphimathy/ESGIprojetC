@@ -31,3 +31,11 @@ include_directories(${SQLite3_INCLUDE_DIRS})
 link_directories(${SQLite3_LIBRARY_DIRS})
 add_definitions(${SQLite3_CFLAGS_OTHER})
 target_link_libraries(ProjetC ${SQLite3_LIBRARIES})
+
+# Add json-c to project
+find_package(json-c)
+pkg_check_modules(json-c REQUIRED json-c)
+include_directories(${json-c_INCLUDE_DIRS})
+link_directories(${json-c_LIBRARY_DIRS})
+add_definitions(${json-c_CFLAGS_OTHER})
+target_link_libraries(ProjetC ${json-c_LIBRARIES})
