@@ -7,8 +7,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build/")
 add_executable(ProjetC clientSrc.c
         sources/window.c headers/window.h
-        sources/config.c sources/config.c headers/config.h
-        sources/configTypes.c
+        sources/config.c headers/config.h sources/configTypes.c
         sources/database.c headers/database.h sources/databaseTypes.c
         sources/jsonParse.c headers/jsonParse.h)
 
