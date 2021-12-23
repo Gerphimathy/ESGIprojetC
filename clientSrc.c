@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 
     ///Create Window if hasGui parameter is true
     if (strcmp(lineParams.hasGui, "true") == 0) createWindow(0, argv);
-    else cmdMain(localDatabase, masterConfig);
+    else cmdMain(&localDatabase, &masterConfig);
 
     sqlite3_close(localDatabase.databaseHandle);
 
