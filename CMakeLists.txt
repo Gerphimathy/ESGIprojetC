@@ -39,3 +39,11 @@ include_directories(${json-c_INCLUDE_DIRS})
 link_directories(${json-c_LIBRARY_DIRS})
 add_definitions(${json-c_CFLAGS_OTHER})
 target_link_libraries(ProjetC ${json-c_LIBRARIES})
+
+# Add openssl libs to project
+find_package(OpenSSL)
+pkg_check_modules(OpenSSL REQUIRED OpenSSL)
+include_directories(${OpenSSL_INCLUDE_DIRS})
+link_directories(${OpenSSL_LIBRARY_DIRS})
+add_definitions(${OpenSSL_CFLAGS_OTHER})
+target_link_libraries(ProjetC ${OpenSSL_LIBRARIES})

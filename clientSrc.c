@@ -4,6 +4,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <json-c/json.h>
+#include <openssl/sha.h>
 
 #include "headers/window.h"
 #include "headers/config.h"
