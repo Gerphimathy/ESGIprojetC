@@ -27,7 +27,6 @@ void tweakConfigs(fileConfig* targetConfig){
 
 }
 
-
 /**
  * @usage Loop to tweak specific config in cmd mode, used by tweakConfigs
  * @param conf -- target configuration to tweak
@@ -85,7 +84,6 @@ void buildConfigFile(fileConfig *targetConfig){
     fprintf(targetConfig->configFile, "%s = %s\n%s\n\n",
             targetConfig->hasGui.name, targetConfig->hasGui.value,targetConfig->hasGui.description);
 
-    fclose(targetConfig->configFile);
 }
 
 /**

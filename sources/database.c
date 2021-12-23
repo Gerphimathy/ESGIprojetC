@@ -11,7 +11,6 @@
  * @usage Communicating with database
  */
 
-
 /**
  * @usage prepares database file, calls repairDatabase to check the integrity of the database in case of tempering/deletion
  * @param path -- path to the databasefile
