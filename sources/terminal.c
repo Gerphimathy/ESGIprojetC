@@ -44,6 +44,7 @@ void cmdMain(database *db, fileConfig* config) {
             fgets(username, 255, stdin);
             if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
 
+            fflush(stdin);
             printf("\nPassword:\t");
             fgets(pass, 255, stdin);
             if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
@@ -64,6 +65,7 @@ void cmdMain(database *db, fileConfig* config) {
             fgets(username, 255, stdin);
             if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
 
+            fflush(stdin);
             printf("\nPassword:\t");
             fgets(pass, 255, stdin);
             if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
@@ -140,6 +142,7 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
 
         if (strcmp(action, "pass") == 0){
             if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK){
+                fflush(stdin);
                 system("cls");
                 printf(">>Credentials verified\n\nChoose the new password");
                 printf("\nPassword:\t");
@@ -171,11 +174,11 @@ int cmdDoubleCheck(database * db, int id){
     printf("\n\nENTER YOUR USERNAME AND PASSWORD TO PROCEED\n\n");
 
     fflush(stdin);
-
     printf("Username:\t");
     fgets(username, 255, stdin);
     if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
 
+    fflush(stdin);
     printf("\nPassword:\t");
     fgets(pass, 255, stdin);
     if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';

@@ -24,7 +24,7 @@
  * @return login status (LOGIN_ERR or id)
  */
 int login(database *db, session *targetSession, char username[255], char password[255]) {
-    char hash[512];
+    unsigned char hash[512];
     char req[1024];
     int id;
 
@@ -68,7 +68,7 @@ int login(database *db, session *targetSession, char username[255], char passwor
  * @return LOGIN_ERR if not verified, CREDENTIALS_VERIFIED if verified
  */
 int verifyCredentials(database *db, int id, char username[255], char password[255]){
-    char hash[512];
+    unsigned char hash[512];
     char req[1024];
 
     hashPass(password, hash);
@@ -94,15 +94,23 @@ int verifyCredentials(database *db, int id, char username[255], char password[25
  * @param pass -- password to be treated
  * @param dest -- target that will receive treated password
  */
-void hashPass(char *pass, char dest[512]) {
+void hashPass(char *pass, unsigned char dest[512]) {
     SHA512_CTX ctx;
     strcpy(dest, pass);
 
     strcat(dest, SALT);
 
+    /*TODO:...For some ungodly reason, this does not work
+    //TODO: DEBUG
+    fprintf(stdout, "\n>>%s\n>>%s\n", pass, dest);
+
     SHA512_Init(&ctx);
     SHA512_Update(&ctx, dest, strlen(dest));
     SHA512_Final(dest, &ctx);
+
+    //TODO: DEBUG
+    fprintf(stdout, "\n>>%s\n", dest);
+     */
 }
 
 /**
@@ -113,7 +121,7 @@ void hashPass(char *pass, char dest[512]) {
  * @return register status -- REGISTER_ERR for execution error, REGISTER_SUCCESS for success, REGISTER_DUPLICATE for already existing account
  */
 int registerAccount(database *db, char username [255], char password[255]) {
-    char hash[512];
+    unsigned char hash[512];
     char req[1024];
 
     hashPass(password, hash);
@@ -176,7 +184,7 @@ void updateUserConf(database * db, int id, char path[255]){
  */
 void updateUserPassword(database * db, int id, char password[255]){
     char *delete = "UPDATE users SET password = @pass WHERE _id = @id;";
-    char hash[512];
+    unsigned char hash[512];
 
     hashPass(password, hash);
 

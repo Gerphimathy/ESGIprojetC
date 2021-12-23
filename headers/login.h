@@ -16,7 +16,7 @@ typedef struct session session;
 
 int registerAccount(database *db, char username [255], char password[255]);
 
-void hashPass(char* pass, char dest[512]);
+void hashPass(char* pass, unsigned char dest[512]);
 
 void cmdSession(database *db, session *userSession, fileConfig *defaultConfig);
 
