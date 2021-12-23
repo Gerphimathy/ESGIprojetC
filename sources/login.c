@@ -7,8 +7,8 @@
 #include "databaseTypes.c"
 #include "../headers/database.h"
 #include "../headers/login.h"
-#include "configTypes.c"
 #include "../headers/config.h"
+#include "sessionType.c"
 
 
 /**
@@ -24,6 +24,7 @@ void cmdMain(database db, fileConfig config) {
     char action[255];
     char username[255];
     char pass[255];
+    session userSession;
 
     do {
         fflush(stdin);
@@ -50,7 +51,7 @@ void cmdMain(database db, fileConfig config) {
             fgets(pass, 255, stdin);
             if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
 
-            if (login(db, username, pass) == LOGIN_ERR) printf("\nFailed to log in");
+            if (login(db, &userSession, username, pass) == LOGIN_ERR) printf("\nFailed to log in");
             //TODO: Continue once logged in
             else printf("\nLogin Successful");
         }
@@ -77,17 +78,18 @@ void cmdMain(database db, fileConfig config) {
 /**
  * @Usage returns user id if successful, LOGIN_ERR(-1) if not
  * @param db -- database structure
+ * @param targetSession -- address of the session structure to initialize
  * @param username -- username to attempt login with
  * @param password -- password to attempt login with
  * @return login status (LOGIN_ERR or id)
  */
-int login(database db, char username[255], char password[255]) {
+int login(database db, session *targetSession, char username[255], char password[255]) {
     char hash[512];
     char req[1024];
     int id;
 
     hashPass(password, hash);
-    strcpy(req ,"SELECT _id FROM users WHERE (username = @username AND password = @pass);");
+    strcpy(req ,"SELECT _id, username, yt_token, twt_token, conf_file FROM users WHERE (username = @username AND password = @pass);");
     db.databaseConnection = sqlite3_prepare_v2(db.databaseHandle, req, -1, &db.statement,0);
 
     if (db.databaseConnection == SQLITE_OK){
@@ -96,6 +98,15 @@ int login(database db, char username[255], char password[255]) {
         int step = sqlite3_step(db.statement);
         if (step == SQLITE_ROW){
             id = (int) sqlite3_column_int(db.statement, 0);
+            targetSession->id_user = id;
+
+            strcpy(targetSession->username, sqlite3_column_text16(db.statement, 1));
+
+            strcpy(targetSession->yt_token, sqlite3_column_text16(db.statement, 2));
+            strcpy(targetSession->twt_token, sqlite3_column_text16(db.statement, 3));
+
+            strcpy(targetSession->config.path, sqlite3_column_text16(db.statement, 4));
+
             sqlite3_finalize(db.statement);
             return id;
         } else{
@@ -158,7 +169,7 @@ int registerAccount(database db, char username [255], char password[255]) {
             fprintf(stderr, "Account already exists");
             return REGISTER_DUPLICATE;
         } else{
-            strcpy(req, "INSERT INTO users(username, password) VALUES(@username, @pass);");
+            strcpy(req, "INSERT INTO users(username, password, yt_token, twt_token, conf_file) VALUES(@username, @pass, '', '', '');");
             db.databaseConnection = sqlite3_prepare_v2(db.databaseHandle, req, -1, &db.statement,NULL);
 
             if (db.databaseConnection == SQLITE_OK){

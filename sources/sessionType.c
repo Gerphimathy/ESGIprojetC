@@ -1,4 +1,4 @@
-
+#include "../headers/config.h"
 #include "configTypes.c"
 
 /**
@@ -13,8 +13,8 @@
 typedef struct channel{
     int id_twt;
     char name[255];
-    char link_twt[255];
-    char link_yt[255];
+    char twt_link[255];
+    char yt_link[255];
 }channel;
 
 /**
@@ -35,8 +35,8 @@ typedef struct feed{
 typedef struct session{
     int id_user;
     char username[255];
-    char token_yt[255];
-    char token_twt[255];
+    char yt_token[255];
+    char twt_token[255];
     fileConfig config;
     int nbFeeds;
     feed* feeds;

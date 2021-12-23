@@ -64,8 +64,8 @@ void repairDatabase(sqlite3* database, int connect){
 
                             "CREATE TABLE IF NOT EXISTS channel("
                             "_id INTEGER PRIMARY KEY,"
-                            "link_yt VARCHAR(255) NOT NULL,"
-                            "link_twt VARCHAR(255) NOT NULL);"
+                            "yt_link VARCHAR(255) NOT NULL,"
+                            "twt_link VARCHAR(255) NOT NULL);"
 
                             "CREATE TABLE IF NOT EXISTS rel_ch_feed("
                             "id_feed INTEGER NOT NULL,"
