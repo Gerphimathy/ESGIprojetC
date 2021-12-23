@@ -124,7 +124,7 @@ int login(database *db, session *targetSession, char username[255], char passwor
 }
 
 /**
- * @usage Hashes, sanitizes and salts password using SHA512
+ * @usage Hashes and salts password using SHA512
  * @param pass -- password to be treated
  * @param dest -- target that will receive treated password
  */
@@ -133,19 +133,11 @@ void hashPass(char *pass, char dest[512]) {
     int len = strlen(pass);
     strcpy(dest, pass);
 
-    char *sanitize = dest;
-
-    while (strpbrk(sanitize,"'\"")!=NULL){
-        sanitize = strpbrk(sanitize,"'\"");
-        if(*sanitize == '\'') *sanitize = 'q';
-        if(*sanitize == '"') *sanitize = 'Q';
-    }
     strcat(dest, pass+len/2);
 
     SHA512_Init(&ctx);
     SHA512_Update(&ctx, dest, len);
     SHA512_Final(dest, &ctx);
-
 }
 
 /**
