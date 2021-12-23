@@ -9,6 +9,10 @@ typedef struct fileConfig fileConfig;
 
 typedef struct configType configType;
 
+void tweakConfigs(fileConfig* targetConfig);
+
+void tweakConfLoop(configType* conf, int nbPossibleValues, char possibleValues[][10]);
+
 void assignConfigs(fileConfig* targetConfig);
 
 void buildConfigFile(fileConfig *targetConfig);

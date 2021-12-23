@@ -75,6 +75,7 @@ void cmdMain(database *db, fileConfig* config) {
             if (registerAccount(db, username, pass) == REGISTER_SUCCESS) printf(">>Account Successfully created");
             else fprintf(stderr, ">>Local Account Creation failure");
         }
+        if (strcmp(action, "conf") == 0)tweakConfigs(config);
 
     } while (strcmp(action, "quit") != 0);
 }
@@ -189,5 +190,5 @@ int registerAccount(database *db, char username [255], char password[255]) {
 }
 
 void cmdSession(database *db, session *userSession){
-
+    char action[255];
 }
