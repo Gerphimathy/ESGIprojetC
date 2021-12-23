@@ -22,4 +22,10 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig);
 
 void updateUserConf(database * db, int id, char path[255]);
 
+void updateUserPassword(database * db, int id, char password[255]);
+
+int verifyCredentials(database *db, int id, char username[255], char password[255]);
+
+
+
 #endif //CLIENTSRC_C_LOGIN_H

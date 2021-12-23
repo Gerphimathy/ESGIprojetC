@@ -58,7 +58,7 @@ void cmdMain(database *db, fileConfig* config) {
         if (strcmp(action, "register") == 0) {
             system("cls");
             fflush(stdin);
-            printf("\nRegister local account");
+            printf("Register Profile");
 
             printf("\nUsername:\t");
             fgets(username, 255, stdin);
@@ -72,7 +72,7 @@ void cmdMain(database *db, fileConfig* config) {
             if (registerAccount(db, username, pass) == REGISTER_SUCCESS) printf(">>Account Successfully created");
             else fprintf(stderr, ">>Local Account Creation failure");
         }
-        if (strcmp(action, "conf") == 0)tweakConfigs(config);
+        if (strcmp(action, "conf") == 0) tweakConfigs(config);
 
     } while (strcmp(action, "quit") != 0);
 }
@@ -86,6 +86,8 @@ void cmdMain(database *db, fileConfig* config) {
 void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
     char action[255];
     char subAction[10];
+    char password[255];
+
     if (strcmp(userSession->config.path,"none") == 0){
         userSession->config = *defaultConfig;
     }
@@ -136,5 +138,48 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
             }
         }
 
+        if (strcmp(action, "pass") == 0){
+            if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK){
+                system("cls");
+                printf(">>Credentials verified\n\nChoose the new password");
+                printf("\nPassword:\t");
+
+                fgets(password, 255, stdin);
+                if (password[strlen(password) - 1] == '\n') password[strlen(password) - 1] = '\0';
+
+                updateUserPassword(db, userSession->id_user, password);
+                printf("\nUser password Updated:\t");
+
+            }else printf(">>Wrong profile credentials\n");
+        }
+        if (strcmp(action, "del") == 0){
+
+        }
+
     } while (strcmp(action, "quit") != 0);
+}
+
+/**
+ * @usage double checks user credentials before committing to serious change
+ * @param db -- database
+ * @param id -- userID
+ * @return CHECK_OK is the check is successful, CHECK_NO is it is not
+ */
+int cmdDoubleCheck(database * db, int id){
+    char username[255];
+    char pass[255];
+    printf("\n\nENTER YOUR USERNAME AND PASSWORD TO PROCEED\n\n");
+
+    fflush(stdin);
+
+    printf("Username:\t");
+    fgets(username, 255, stdin);
+    if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
+
+    printf("\nPassword:\t");
+    fgets(pass, 255, stdin);
+    if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
+
+    if (verifyCredentials(db, id, username, pass) == CREDENTIALS_VERIFIED) return CHECK_OK;
+    else return CHECK_NO;
 }

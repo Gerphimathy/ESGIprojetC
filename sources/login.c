@@ -60,19 +60,48 @@ int login(database *db, session *targetSession, char username[255], char passwor
 }
 
 /**
+ * @usage Check if credentials match what's inside the database (id, username and password)
+ * @param db -- database structure
+ * @param id -- id to verify
+ * @param username -- username to verify
+ * @param password -- password to verify
+ * @return LOGIN_ERR if not verified, CREDENTIALS_VERIFIED if verified
+ */
+int verifyCredentials(database *db, int id, char username[255], char password[255]){
+    char hash[512];
+    char req[1024];
+
+    hashPass(password, hash);
+
+    strcpy(req, "SELECT conf_file FROM users WHERE (_id = @id AND username = @username AND password = @pass);");
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, req, -1, &db->statement,NULL);
+
+    if (db->databaseConnection == SQLITE_OK) {
+        sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@id"), id);
+        sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@username"), username, strlen(username), NULL);
+        sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@pass"), hash, strlen(hash), NULL);
+
+        int step = sqlite3_step(db->statement);
+        sqlite3_finalize(db->statement);
+
+        if (step == SQLITE_ROW) return CREDENTIALS_VERIFIED;
+        else return LOGIN_ERR;
+    }else return LOGIN_ERR;
+}
+
+/**
  * @usage Hashes and salts password using SHA512
  * @param pass -- password to be treated
  * @param dest -- target that will receive treated password
  */
 void hashPass(char *pass, char dest[512]) {
     SHA512_CTX ctx;
-    int len = strlen(pass);
     strcpy(dest, pass);
 
-    strcat(dest, pass+len/2);
+    strcat(dest, SALT);
 
     SHA512_Init(&ctx);
-    SHA512_Update(&ctx, dest, len);
+    SHA512_Update(&ctx, dest, strlen(dest));
     SHA512_Final(dest, &ctx);
 }
 
@@ -125,7 +154,7 @@ int registerAccount(database *db, char username [255], char password[255]) {
 }
 
 /**
- * @usage updates a users' configuration foler
+ * @usage updates a users' configuration folder
  * @param db -- database
  * @param id -- id of the user
  * @param path -- path of the config file (none for default)
@@ -135,6 +164,25 @@ void updateUserConf(database * db, int id, char path[255]){
     db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
     sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@id"), id);
     sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@path"), path, strlen(path),NULL);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+}
+
+/**
+ * @usage updates a users' password
+ * @param db -- database
+ * @param id -- id of the user
+ * @param path -- new password
+ */
+void updateUserPassword(database * db, int id, char password[255]){
+    char *delete = "UPDATE users SET password = @pass WHERE _id = @id;";
+    char hash[512];
+
+    hashPass(password, hash);
+
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@id"), id);
+    sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@pass"), hash, strlen(hash),NULL);
     sqlite3_step(db->statement);
     sqlite3_finalize(db->statement);
 }
