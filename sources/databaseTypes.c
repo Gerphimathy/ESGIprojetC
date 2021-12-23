@@ -13,4 +13,5 @@ typedef struct database{
     int databaseConnection;
     char path[255];
     char *errmsg;
+    sqlite3_stmt *statement;
 }database;

@@ -1,13 +1,165 @@
 #include <stdio.h>
 #include <string.h>
-#include <gtk/gtk.h>
 #include <sqlite3.h>
+#include <openssl/sha.h>
 
+#include "../headers/macros.h"
 #include "databaseTypes.c"
 #include "../headers/database.h"
 #include "../headers/login.h"
+#include "configTypes.c"
+#include "../headers/config.h"
 
 
 /**
 * @usage user login and token linking functions
 */
+
+/**
+ * @usage Lists x profiles for connection in command line mode
+ * @param db -- database structure (handle and connection)
+ */
+void cmdMain(database db, fileConfig config) {
+    char action[255];
+    char username[255];
+    char pass[255];
+
+    do {
+        fflush(stdin);
+        strcpy(action, "none");
+        printf("\nChoose Action:"
+               "\n\nquit\t\t-\tCloses client"
+               "\nlogin\t\t-\tList Accounts to log into"
+               "\nregister\t-\tRegister local account"
+               "\nconf\t\t-\tEdit master configuration"
+               "\n");
+        fgets(action, 255, stdin);
+        if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
+
+        if (strcmp(action, "login") == 0) {
+            system("cls");
+            fflush(stdin);
+            printf("Login into local account");
+
+            printf("\nUsername:\t");
+            fgets(username, 255, stdin);
+            if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
+
+            printf("\nPassword:\t");
+            fgets(pass, 255, stdin);
+            if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
+
+            if (login(db, username, pass) == LOGIN_ERR) printf("\nFailed to log in");
+            //TODO: Continue once logged in
+            else printf("\nLogin Successful");
+        }
+        if (strcmp(action, "register") == 0) {
+            system("cls");
+            fflush(stdin);
+            printf("Register local account");
+
+            printf("\nUsername:\t");
+            fgets(username, 255, stdin);
+            if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
+
+            printf("\nPassword:\t");
+            fgets(pass, 255, stdin);
+            if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
+
+            if (registerAccount(db, username, pass) == REGISTER_SUCCESS) printf("\n>>Account Successfully created");
+            else fprintf(stderr, "\nLocal Account Creation failure");
+        }
+
+    } while (strcmp(action, "quit") != 0);
+}
+
+int login(database db, char username[255], char password[255]) {
+    char hash[512];
+    char req[1024];
+    int id;
+
+    hashPass(password, hash);
+    strcpy(req ,"SELECT _id FROM users WHERE (username = @username AND password = @pass);");
+    db.databaseConnection = sqlite3_prepare_v2(db.databaseHandle, req, -1, &db.statement,0);
+
+    if (db.databaseConnection == SQLITE_OK){
+        sqlite3_bind_text(db.statement, sqlite3_bind_parameter_index(db.statement, "@username"), username, strlen(username), NULL);
+        sqlite3_bind_text(db.statement, sqlite3_bind_parameter_index(db.statement, "@pass"), hash, strlen(hash), NULL);
+        int step = sqlite3_step(db.statement);
+        if (step == SQLITE_ROW){
+            id = (int) sqlite3_column_int(db.statement, 0);
+            sqlite3_finalize(db.statement);
+            return id;
+        } else{
+            sqlite3_finalize(db.statement);
+            return LOGIN_ERR;
+        }
+    } else{
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db.databaseHandle));
+        return LOGIN_ERR;
+    }
+}
+
+char *hashPass(char *pass, char dest[512]) {
+    SHA512_CTX ctx;
+    int len = strlen(pass);
+    strcpy(dest, pass);
+
+    char *sanitize = dest;
+
+    while (strpbrk(sanitize,"'\"")!=NULL){
+        sanitize = strpbrk(sanitize,"'\"");
+        if(*sanitize == '\'') *sanitize = 'q';
+        if(*sanitize == '"') *sanitize = 'Q';
+    }
+    strcat(dest, pass+len/2);
+
+    SHA512_Init(&ctx);
+    SHA512_Update(&ctx, dest, len);
+    SHA512_Final(dest, &ctx);
+
+    return dest;
+
+}
+
+int registerAccount(database db, char username [255], char password[255]) {
+    char hash[512];
+    char req[1024];
+
+    hashPass(password, hash);
+
+    strcpy(req, "SELECT _id FROM users WHERE (username = @username);");
+    db.databaseConnection = sqlite3_prepare_v2(db.databaseHandle, req, -1, &db.statement,NULL);
+
+    if (db.databaseConnection == SQLITE_OK){
+        sqlite3_bind_text(db.statement, sqlite3_bind_parameter_index(db.statement, "@username"), username, strlen(username), NULL);
+        int step = sqlite3_step(db.statement);
+        sqlite3_finalize(db.statement);
+
+        if (step == SQLITE_ROW){
+            fprintf(stderr, "Account already exists");
+            return REGISTER_DUPLICATE;
+        } else{
+            strcpy(req, "INSERT INTO users(username, password) VALUES(@username, @pass);");
+            db.databaseConnection = sqlite3_prepare_v2(db.databaseHandle, req, -1, &db.statement,NULL);
+
+            if (db.databaseConnection == SQLITE_OK){
+
+                sqlite3_bind_text(db.statement, sqlite3_bind_parameter_index(db.statement, "@username"), username, strlen(username), NULL);
+                sqlite3_bind_text(db.statement, sqlite3_bind_parameter_index(db.statement, "@pass"), hash, strlen(hash), NULL);
+
+                sqlite3_step(db.statement);
+                sqlite3_finalize(db.statement);
+
+                return REGISTER_SUCCESS;
+
+            } else{
+                fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db.databaseHandle));
+                return REGISTER_ERR;
+            }
+        }
+    } else{
+        fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db.databaseHandle));
+        return REGISTER_ERR;
+    }
+}

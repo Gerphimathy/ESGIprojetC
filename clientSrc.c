@@ -6,6 +6,7 @@
 #include <json-c/json.h>
 #include <openssl/sha.h>
 
+#include "headers/macros.h"
 #include "headers/window.h"
 #include "headers/config.h"
 #include "sources/configTypes.c"
@@ -13,6 +14,7 @@
 #include "sources/databaseTypes.c"
 #include "headers/jsonParse.h"
 #include "headers/login.h"
+
 
 /**
  * @usage receives command line parameters after parsing
@@ -76,14 +78,17 @@ int main(int argc, char **argv) {
     commandLineParameters lineParams;
     parseArgs(&lineParams, masterConfig, argc, argv);
 
-    ///Create Window if hasGui parameter is true
-    if (strcmp(lineParams.hasGui, "true") == 0) createWindow(0, argv);
+
 
     ///Prepare main Database Structure
     database localDatabase;
     strcpy(localDatabase.path, "config/localDatabase.db");
     localDatabase.databaseHandle = prepareDatabase("config/localDatabase.db");
     localDatabase.databaseConnection = sqlite3_open("config/localDatabase.db", &localDatabase.databaseHandle);
+
+    ///Create Window if hasGui parameter is true
+    if (strcmp(lineParams.hasGui, "true") == 0) createWindow(0, argv);
+    else cmdMain(localDatabase, masterConfig);
 
     sqlite3_close(localDatabase.databaseHandle);
 

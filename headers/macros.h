@@ -6,5 +6,8 @@
 
 #define LOGIN_ERR -1
 
+#define REGISTER_ERR 0
+#define REGISTER_SUCCESS 1
+#define REGISTER_DUPLICATE 2
 
 #endif //CLIENTSRC_C_MACROS_H

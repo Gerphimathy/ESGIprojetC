@@ -51,7 +51,7 @@ void repairDatabase(sqlite3* database, int connect){
     char *creationRequest = "CREATE TABLE IF NOT EXISTS users("
                             "_id INTEGER PRIMARY KEY,"
                             "username VARCHAR(255) NOT NULL,"
-                            "password VARCHAR(255) NOT NULL,"
+                            "password CHAR(512) NOT NULL,"
                             "yt_token VARCHAR(255),"
                             "twt_token VARCHAR(255),"
                             "conf_file VARCHAR(255));"
