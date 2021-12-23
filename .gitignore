@@ -9,4 +9,5 @@ cmake-build-*
 ##Ignore debug and test files
 
 test
+build
 debug
