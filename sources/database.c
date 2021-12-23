@@ -51,7 +51,29 @@ void repairDatabase(sqlite3* database, int connect){
     char *creationRequest = "CREATE TABLE IF NOT EXISTS users("
                             "_id INTEGER PRIMARY KEY,"
                             "username VARCHAR(255) NOT NULL,"
-                            "password VARCHAR(255) NOT NULL);";
+                            "password VARCHAR(255) NOT NULL,"
+                            "yt_token VARCHAR(255),"
+                            "twt_token VARCHAR(255),"
+                            "conf_file VARCHAR(255));"
+
+                            "CREATE TABLE IF NOT EXISTS feed("
+                            "_id INTEGER PRIMARY KEY,"
+                            "name VARCHAR(255) NOT NULL,"
+                            "id_user INTEGER NOT NULL,"
+                            "FOREIGN KEY(id_user) REFERENCES users(_id));"
+
+                            "CREATE TABLE IF NOT EXISTS channel("
+                            "_id INTEGER PRIMARY KEY,"
+                            "link_yt VARCHAR(255) NOT NULL,"
+                            "link_twt VARCHAR(255) NOT NULL);"
+
+                            "CREATE TABLE IF NOT EXISTS rel_ch_feed("
+                            "id_feed INTEGER NOT NULL,"
+                            "id_channel INTEGER NOT NULL,"
+                            "FOREIGN KEY(id_feed) REFERENCES feed(_id)"
+                            "FOREIGN KEY(id_channel) REFERENCES channel(_id)"
+                            "PRIMARY KEY (id_channel, id_feed));"
+                            ;
 
     if (connect != SQLITE_OK){
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(database));
