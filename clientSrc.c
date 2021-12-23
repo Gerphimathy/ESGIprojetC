@@ -9,9 +9,9 @@
 #include "headers/macros.h"
 #include "headers/window.h"
 #include "headers/config.h"
-#include "sources/configTypes.c"
+#include "types/configTypes.c"
 #include "headers/database.h"
-#include "sources/databaseTypes.c"
+#include "types/databaseTypes.c"
 #include "headers/jsonParse.h"
 #include "headers/login.h"
 
