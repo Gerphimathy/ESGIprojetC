@@ -11,6 +11,7 @@
 #include "headers/database.h"
 #include "sources/databaseTypes.c"
 #include "headers/jsonParse.h"
+#include "headers/login.h"
 
 /**
  * @usage receives command line parameters after parsing
