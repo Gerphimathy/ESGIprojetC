@@ -14,6 +14,6 @@ int login(database db, char username[255], char password[255]);
 
 int registerAccount(database db, char username [255], char password[255]);
 
-char* hashPass(char* pass, char dest[512]);
+void hashPass(char* pass, char dest[512]);
 
 #endif //CLIENTSRC_C_LOGIN_H

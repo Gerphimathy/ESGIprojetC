@@ -16,8 +16,9 @@
 */
 
 /**
- * @usage Lists x profiles for connection in command line mode
- * @param db -- database structure (handle and connection)
+ * @usage main loop for CMD execution
+ * @param db -- database structure
+ * @param config -- master config structure
  */
 void cmdMain(database db, fileConfig config) {
     char action[255];
@@ -73,6 +74,13 @@ void cmdMain(database db, fileConfig config) {
     } while (strcmp(action, "quit") != 0);
 }
 
+/**
+ * @Usage returns user id if successful, LOGIN_ERR(-1) if not
+ * @param db -- database structure
+ * @param username -- username to attempt login with
+ * @param password -- password to attempt login with
+ * @return login status (LOGIN_ERR or id)
+ */
 int login(database db, char username[255], char password[255]) {
     char hash[512];
     char req[1024];
@@ -100,7 +108,12 @@ int login(database db, char username[255], char password[255]) {
     }
 }
 
-char *hashPass(char *pass, char dest[512]) {
+/**
+ * @usage Hashes, sanitizes and salts password using SHA512
+ * @param pass -- password to be treated
+ * @param dest -- target that will receive treated password
+ */
+void hashPass(char *pass, char dest[512]) {
     SHA512_CTX ctx;
     int len = strlen(pass);
     strcpy(dest, pass);
@@ -118,10 +131,15 @@ char *hashPass(char *pass, char dest[512]) {
     SHA512_Update(&ctx, dest, len);
     SHA512_Final(dest, &ctx);
 
-    return dest;
-
 }
 
+/**
+ * @usage Adds account to database after checking if username is not a duplicate
+ * @param db -- database structure
+ * @param username -- username to be added
+ * @param password -- password to be added
+ * @return register status -- REGISTER_ERR for execution error, REGISTER_SUCCESS for success, REGISTER_DUPLICATE for already existing account
+ */
 int registerAccount(database db, char username [255], char password[255]) {
     char hash[512];
     char req[1024];
