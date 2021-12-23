@@ -1,0 +1,10 @@
+#ifndef CLIENTSRC_C_MACROS_H
+#define CLIENTSRC_C_MACROS_H
+
+#define MODE_CMD 0
+#define MODE_GUI 1
+
+#define LOGIN_ERR -1
+
+
+#endif //CLIENTSRC_C_MACROS_H
