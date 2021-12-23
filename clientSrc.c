@@ -12,9 +12,7 @@
 #include "types/configTypes.c"
 #include "headers/database.h"
 #include "types/databaseTypes.c"
-#include "headers/jsonParse.h"
-#include "headers/login.h"
-
+#include "headers/terminal.h"
 
 /**
  * @usage receives command line parameters after parsing

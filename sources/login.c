@@ -16,71 +16,6 @@
 */
 
 /**
- * @usage main loop for CMD execution
- * @param db -- database structure
- * @param config -- master config structure
- */
-void cmdMain(database *db, fileConfig* config) {
-    char action[255];
-    char username[255];
-    char pass[255];
-    session userSession;
-
-    do {
-        fflush(stdin);
-        strcpy(action, "none");
-        printf("\nChoose Action:"
-               "\n\nquit\t\t-\tCloses client"
-               "\nlogin\t\t-\tLog into profile"
-               "\nregister\t-\tRegister profile"
-               "\nconf\t\t-\tEdit master configuration"
-               "\n");
-        fgets(action, 255, stdin);
-        if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
-
-        if (strcmp(action, "login") == 0) {
-            system("cls");
-            fflush(stdin);
-            printf("Login into profile");
-
-            printf("\nUsername:\t");
-            fgets(username, 255, stdin);
-            if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
-
-            printf("\nPassword:\t");
-            fgets(pass, 255, stdin);
-            if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
-
-            system("cls");
-            if (login(db, &userSession, username, pass) == LOGIN_ERR) printf(">>Failed to log in");
-            else {
-                printf(">>Login Successful");
-                cmdSession (db, &userSession, config);
-            }
-        }
-        if (strcmp(action, "register") == 0) {
-            system("cls");
-            fflush(stdin);
-            printf("\nRegister local account");
-
-            printf("\nUsername:\t");
-            fgets(username, 255, stdin);
-            if (username[strlen(username) - 1] == '\n') username[strlen(username) - 1] = '\0';
-
-            printf("\nPassword:\t");
-            fgets(pass, 255, stdin);
-            if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
-
-            system("cls");
-            if (registerAccount(db, username, pass) == REGISTER_SUCCESS) printf(">>Account Successfully created");
-            else fprintf(stderr, ">>Local Account Creation failure");
-        }
-        if (strcmp(action, "conf") == 0)tweakConfigs(config);
-
-    } while (strcmp(action, "quit") != 0);
-}
-
-/**
  * @Usage returns user id if successful, LOGIN_ERR(-1) if not
  * @param db -- database structure
  * @param targetSession -- address of the session structure to initialize
@@ -187,62 +122,6 @@ int registerAccount(database *db, char username [255], char password[255]) {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db->databaseHandle));
         return REGISTER_ERR;
     }
-}
-
-void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
-    char action[255];
-    char subAction[10];
-    if (strcmp(userSession->config.path,"none") == 0){
-        userSession->config = *defaultConfig;
-    }
-    do {
-        fflush(stdin);
-        strcpy(action, "none");
-        printf("\nChoose Action:"
-               "\n\nquit\t\t-\tDisconnects from session"
-               "\nfeeds\t\t-\tManage feeds"
-               "\nconf\t\t-\tEdit personal configurations"
-               "\npass\t\t-\tEdit password"
-               "\ndel\t\t-\tDelete profile"
-               "\n");
-        fgets(action, 255, stdin);
-        if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
-
-        if (strcmp(action, "conf") == 0) {
-            if (strcmp(defaultConfig->path,userSession->config.path) == 0) {
-                printf("You are currently using the default settings\n"
-                       "Would you like to use special configurations for this profile ?\n"
-                       "[yes/no]\n\n");
-                fgets(subAction, 10, stdin);
-                if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
-                if(strcmp(subAction, "Yes")==0
-                ||strcmp(subAction, "yes")==0
-                ||strcmp(subAction, "YES")==0) {
-                    snprintf(userSession->config.path, 255,"config/user%d.conf", userSession->id_user);
-                    parseConfigFile(&userSession->config);
-                    updateUserConf(db, userSession->id_user,userSession->config.path);
-                    printf("\n>>Configuration File Generated");
-                }
-            }
-            else{
-                printf("You are currently using your own settings\n"
-                       "Would you like to use the defaults settings on this profile ?\n"
-                       "[yes/no]\n\n");
-                fgets(subAction, 10, stdin);
-                if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
-                if(strcmp(subAction, "Yes")==0
-                   ||strcmp(subAction, "yes")==0
-                   ||strcmp(subAction, "YES")==0) {
-                    userSession->config = *defaultConfig;
-                    updateUserConf(db, userSession->id_user,"none");
-                    printf("\n>>Configuration File Reset");
-                }else{
-                    tweakConfigs(&userSession->config);
-                }
-            }
-        }
-
-    } while (strcmp(action, "quit") != 0);
 }
 
 /**

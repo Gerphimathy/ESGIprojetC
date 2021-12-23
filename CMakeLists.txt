@@ -5,13 +5,13 @@ project(ProjetC C) # TODO
 # Create Executable
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build/")
-add_executable(ProjetC clientSrc.c
+add_executable(ProjetC clientSrc.c headers/macros.h
         sources/window.c headers/window.h
         sources/config.c headers/config.h types/configTypes.c
         sources/database.c headers/database.h types/databaseTypes.c
         sources/jsonParse.c headers/jsonParse.h
         sources/login.c headers/login.h types/sessionType.c
-        headers/macros.h)
+        sources/terminal.c headers/terminal.h)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
