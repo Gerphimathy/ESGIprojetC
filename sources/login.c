@@ -194,3 +194,30 @@ void updateUserPassword(database * db, int id, char password[255]){
     sqlite3_step(db->statement);
     sqlite3_finalize(db->statement);
 }
+
+/**
+ * @usage Will delete a user from the database by, in order, deleting from rel_ch_feed, then feed then finally the user
+ * @param db -- database structure
+ * @param id -- user id to delete
+ */
+void deleteUser(database * db, int id){
+    char delete[255] = "DELETE FROM rel_ch_feed WHERE id_feed IN (SELECT _id FROM feed WHERE id_user = ?);";
+
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, id);
+    sqlite3_step(db->statement);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+
+    strcpy(delete, "DELETE FROM feed WHERE id_user = ?;");
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, id);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+
+    strcpy(delete, "DELETE FROM users WHERE _id = ?;");
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, id);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+}

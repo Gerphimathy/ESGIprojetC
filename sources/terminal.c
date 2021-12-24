@@ -156,7 +156,22 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
             }else printf(">>Wrong profile credentials\n");
         }
         if (strcmp(action, "del") == 0){
-
+            if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK){
+                fflush(stdin);
+                system("cls");
+                printf(">>Credentials verified\n");
+                printf("You are about to delete the profile\n"
+                       "Are you sure you want to delete the profile ?\n"
+                       "[yes/no]\n\n");
+                fgets(subAction, 10, stdin);
+                if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
+                if(strcmp(subAction, "Yes")==0
+                   ||strcmp(subAction, "yes")==0
+                   ||strcmp(subAction, "YES")==0) {
+                    deleteUser(db,userSession->id_user);
+                    strcpy(action, "quit");
+                }
+            }
         }
 
     } while (strcmp(action, "quit") != 0);
