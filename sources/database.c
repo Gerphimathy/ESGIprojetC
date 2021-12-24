@@ -165,3 +165,78 @@ void deleteUser(database * db, int id){
     sqlite3_step(db->statement);
     sqlite3_finalize(db->statement);
 }
+
+/**
+ * @usage count number of lines in table users
+ * @param db -- database structure
+ * @return ACCESS_ERROR if could not connect to database (for example typo in table name), number of lines otherwise
+ */
+int getUserCount(database * db){
+    char * req = "SELECT count(*) FROM users;";
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, req, -1, &db->statement, NULL);
+
+    if (db->databaseConnection != SQLITE_OK) return ACCESS_ERROR;
+
+    db->databaseConnection = sqlite3_step(db->statement);
+
+    if (db->databaseConnection != SQLITE_ROW) {
+        sqlite3_finalize(db->statement);
+        return ACCESS_ERROR;
+    }
+
+    int count = sqlite3_column_int(db->statement, 0);
+    sqlite3_finalize(db->statement);
+    return count;
+}
+
+/**
+ * @usage count number of lines in table feed from userId
+ * @param db -- database structure
+ * @param userId -- id of the feed's owner
+ * @return ACCESS_ERROR if could not connect to database (for example typo in table name), number of lines otherwise
+ */
+int getFeedCount(database * db, int userId){
+    char * req = "SELECT count(*) FROM feed WHERE id_user = @id;";
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, req, -1, &db->statement, NULL);
+
+    if (db->databaseConnection != SQLITE_OK) return ACCESS_ERROR;
+
+    sqlite3_bind_int(db->statement,1,userId);
+
+    db->databaseConnection = sqlite3_step(db->statement);
+
+    if (db->databaseConnection != SQLITE_ROW) {
+        sqlite3_finalize(db->statement);
+        return ACCESS_ERROR;
+    }
+
+    int count = sqlite3_column_int(db->statement, 0);
+    sqlite3_finalize(db->statement);
+    return count;
+}
+
+/**
+ * @usage count number of lines in table rel_ch_feed from feedId
+ * @param db -- database structure
+ * @param userId -- id of the feed's owner
+ * @return ACCESS_ERROR if could not connect to database (for example typo in table name), number of lines otherwise
+ */
+int getChannelCount(database * db, int feedId){
+    char * req = "SELECT count(*) FROM rel_ch_feed WHERE id_feed = @id;";
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, req, -1, &db->statement, NULL);
+
+    if (db->databaseConnection != SQLITE_OK) return ACCESS_ERROR;
+
+    sqlite3_bind_int(db->statement,1,feedId);
+
+    db->databaseConnection = sqlite3_step(db->statement);
+
+    if (db->databaseConnection != SQLITE_ROW) {
+        sqlite3_finalize(db->statement);
+        return ACCESS_ERROR;
+    }
+
+    int count = sqlite3_column_int(db->statement, 0);
+    sqlite3_finalize(db->statement);
+    return count;
+}
