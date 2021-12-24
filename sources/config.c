@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "../headers/config.h"
-#include "../types/configTypes.c"
 
 /**
  * @Usage Parsing info from config file

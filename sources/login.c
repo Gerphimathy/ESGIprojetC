@@ -4,11 +4,9 @@
 #include <openssl/sha.h>
 
 #include "../headers/macros.h"
-#include "../types/databaseTypes.c"
 #include "../headers/database.h"
 #include "../headers/login.h"
 #include "../headers/config.h"
-#include "../types/sessionType.c"
 
 
 /**

@@ -9,11 +9,8 @@
 #include "headers/macros.h"
 #include "headers/window.h"
 #include "headers/config.h"
-#include "types/configTypes.c"
 #include "headers/database.h"
-#include "types/databaseTypes.c"
 #include "headers/terminal.h"
-#include "types/sessionType.c"
 
 /**
  * @usage receives command line parameters after parsing
@@ -112,7 +109,7 @@ int main(int argc, char **argv) {
     commandLineParameters lineParams;
     database localDatabase;
     session fastSession;
-    
+
     ///PARAMETER PRIORITY POLICY:
     /**
      * 1 - Line Params
