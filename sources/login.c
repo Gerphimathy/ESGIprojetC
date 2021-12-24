@@ -46,6 +46,14 @@ int login(database *db, session *targetSession, char username[255], char passwor
             strcpy(targetSession->config.path, sqlite3_column_text(db->statement, 4));
 
             sqlite3_finalize(db->statement);
+
+            if (strcmp(targetSession->config.path,"none") == 0){
+                fileConfig defaultConfig;
+                strcpy(defaultConfig.path, "config/main.conf");
+                parseConfigFile(&defaultConfig);
+                targetSession->config = defaultConfig;
+            }
+            parseConfigFile(&targetSession->config);
             return id;
         } else{
             sqlite3_finalize(db->statement);

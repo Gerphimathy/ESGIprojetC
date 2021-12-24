@@ -10,7 +10,7 @@ add_executable(ProjetC clientSrc.c headers/macros.h
         sources/config.c headers/config.h
         sources/database.c headers/database.h
         sources/jsonParse.c headers/jsonParse.h
-        sources/login.c headers/login.h 
+        sources/login.c headers/login.h
         sources/terminal.c headers/terminal.h)
 
 

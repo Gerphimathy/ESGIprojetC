@@ -5,6 +5,7 @@
 #include <gtk/gtk.h>
 #include <json-c/json.h>
 #include <openssl/sha.h>
+#include <unistd.h>
 
 #include "headers/macros.h"
 #include "headers/window.h"
@@ -31,15 +32,14 @@ typedef struct commandLineParameters{///List of parameters parsed from command l
  * @param argc -- number of command line parameters
  * @param argv -- command line parameters
  */
-void parseArgs(commandLineParameters* params, fileConfig config, int argc, char **argv){
+void parseArgs(commandLineParameters* params, fileConfig *config, int argc, char **argv){
     int isParam;
-
-    strcpy(params->hasGui, config.hasGui.value);
 
     if (argc > 100){//If over 100 arguments, we consider the syntax to be wrong
         printf("Error: Too many arguments");
         exit(-1);
     }
+    strcpy(params->hasGui, config->hasGui.value);
 
     for (int i = 1; i < argc; ++i) {//We parse each argument
         isParam = NOT_PARAM;
@@ -105,10 +105,11 @@ void parseArgs(commandLineParameters* params, fileConfig config, int argc, char 
 int main(int argc, char **argv) {
 
     fileConfig masterConfig;
-    fileConfig userConfig;
     commandLineParameters lineParams;
     database localDatabase;
     session fastSession;
+    fastSession.id_user = LOGIN_ERR; //By default, we do not have a session open
+    int appStatus = APP_STANDBY;
 
     ///PARAMETER PRIORITY POLICY:
     /**
@@ -126,15 +127,18 @@ int main(int argc, char **argv) {
     localDatabase.databaseHandle = prepareDatabase("config/localDatabase.db");
     localDatabase.databaseConnection = sqlite3_open("config/localDatabase.db", &localDatabase.databaseHandle);
 
-    ///Parse line parameters before execution
-    parseArgs(&lineParams, masterConfig, argc, argv);
+    ///Parse line parameters once with default config
+    parseArgs(&lineParams, &masterConfig, argc, argv);
 
+    ///Apply fast connection
     if (strcmp(lineParams.fastLogin, "true") == 0){
         int res = login(&localDatabase,&fastSession, lineParams.username, lineParams.password);
         if (res == LOGIN_ERR) {
             printf(">>Failed to log in");
             exit(-1);
         }
+        ///Parse again but with fast session config
+        parseArgs(&lineParams, &fastSession.config, argc, argv);
     }else if (strcmp(lineParams.fastRegister, "true") == 0){
         int res = registerAccount(&localDatabase, lineParams.username, lineParams.password);
 
@@ -148,11 +152,28 @@ int main(int argc, char **argv) {
             printf(">>Failed to log in");
             exit(-1);
         }
+        ///Parse again but with fast session config
+        parseArgs(&lineParams, &fastSession.config, argc, argv);
     }
 
-    ///Create Window if hasGui parameter is true
-    if (strcmp(lineParams.hasGui, "true") == 0) createWindow(0, argv);
-    else cmdMain(&localDatabase, &masterConfig);
+    ///PARAMETER PRIORITY POLICY:
+    /**
+     * 1 - Line Params
+     * 2 - User Config      ) --> Login and parse command line parameters help to apply this
+     * 3 - Default Configs  )
+     */
+
+    ///Create Window or Terminal using the priority policy:
+    if (strcmp(lineParams.hasGui, "true") == 0) {
+        //TODO: Add fast session to this if
+        createWindow(0, argv);
+        appStatus = APP_LAUNCHED;
+    }
+    if (strcmp(lineParams.hasGui, "false") == 0) {
+        if (fastSession.id_user != LOGIN_ERR) cmdSession(&localDatabase, &fastSession, &masterConfig);
+        else cmdMain(&localDatabase, &masterConfig);
+        appStatus = APP_LAUNCHED;
+    }
 
     ///Finish
     sqlite3_close(localDatabase.databaseHandle);
