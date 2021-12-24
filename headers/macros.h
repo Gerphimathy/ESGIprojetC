@@ -20,6 +20,9 @@
 #define APP_STANDBY 0
 #define APP_LAUNCHED 1
 
+#define CHANGE_NO 0
+#define CHANGE_OK 1
+
 #define SALT "OJIH8UGYV7_çà26481502"
 
 #endif //CLIENTSRC_C_MACROS_H

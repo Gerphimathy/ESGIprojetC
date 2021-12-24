@@ -3,8 +3,10 @@
 #include <sqlite3.h>
 
 #include <string.h>
+#include "../headers/macros.h"
 
 #include "../headers/database.h"
+#include "../headers/login.h"
 
 
 /**
@@ -89,3 +91,77 @@ void repairDatabase(sqlite3* database, int connect){
     }
 }
 
+/**
+ * @usage Check for special characters in parameters before sending to the database
+ * @param string -- string to verify
+ * @return CHECK_OK if no forbidden special chars, CHECK_NO for forbidden special chars
+ */
+int checkForSpeChars(char *string){
+    if (strpbrk(string, "'\"\\%%/`") == NULL) return CHECK_OK;
+    else return CHECK_NO;
+}
+
+/**
+ * @usage updates a users' configuration folder
+ * @param db -- database
+ * @param id -- id of the user
+ * @param path -- path of the config file (none for default)
+ */
+void updateUserConf(database * db, int id, char path[255]){
+    char *delete = "UPDATE users SET conf_file = @path WHERE _id = @id;";
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@id"), id);
+    sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@path"), path, strlen(path),NULL);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+}
+
+/**
+ * @usage updates a users' password
+ * @param db -- database
+ * @param id -- id of the user
+ * @param path -- new password
+ * @return Change_ok if change successful, Change_no if unsuccessful
+ */
+int updateUserPassword(database * db, int id, char password[255]){
+    char *delete = "UPDATE users SET password = @pass WHERE _id = @id;";
+    unsigned char hash[512];
+
+    if(checkForSpeChars(password)==CHECK_NO) return CHANGE_NO;
+
+    hashPass(password, hash);
+
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@id"), id);
+    sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@pass"), hash, strlen(hash),NULL);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+    return CHANGE_OK;
+}
+
+/**
+ * @usage Will delete a user from the database by, in order, deleting from rel_ch_feed, then feed then finally the user
+ * @param db -- database structure
+ * @param id -- user id to delete
+ */
+void deleteUser(database * db, int id){
+    char delete[255] = "DELETE FROM rel_ch_feed WHERE id_feed IN (SELECT _id FROM feed WHERE id_user = ?);";
+
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, id);
+    sqlite3_step(db->statement);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+
+    strcpy(delete, "DELETE FROM feed WHERE id_user = ?;");
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, id);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+
+    strcpy(delete, "DELETE FROM users WHERE _id = ?;");
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, id);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+}

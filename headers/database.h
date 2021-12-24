@@ -21,6 +21,15 @@ typedef struct database{
 }database;
 
 sqlite3* prepareDatabase(char path[255]);
+
 void repairDatabase(sqlite3* database, int connect);
+
+int checkForSpeChars(char *string);
+
+void updateUserConf(database * db, int id, char path[255]);
+
+int updateUserPassword(database * db, int id, char password[255]);
+
+void deleteUser(database * db, int id);
 
 #endif //CLIENTSRC_C_DATABASE_H

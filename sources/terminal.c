@@ -58,7 +58,7 @@ void cmdMain(database *db, fileConfig* config) {
         if (strcmp(action, "register") == 0) {
             system("cls");
             fflush(stdin);
-            printf("Register Profile");
+            printf("Register Profile\nDo not use Special characters: '\"\\%%/`");
 
             printf("\nUsername:\t");
             fgets(username, 255, stdin);
@@ -70,8 +70,10 @@ void cmdMain(database *db, fileConfig* config) {
             if (pass[strlen(pass) - 1] == '\n') pass[strlen(pass) - 1] = '\0';
 
             system("cls");
-            if (registerAccount(db, username, pass) == REGISTER_SUCCESS) printf(">>Account Successfully created");
+            int status = registerAccount(db, username, pass);
+            if (status == REGISTER_SUCCESS) printf(">>Account Successfully created");
             else fprintf(stderr, ">>Local Account Creation failure");
+            if (status == REGISTER_DUPLICATE) fprintf(stderr, "\nProfile with this username already exists");
         }
         if (strcmp(action, "conf") == 0) tweakConfigs(config);
 
@@ -140,14 +142,14 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
             if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK){
                 fflush(stdin);
                 system("cls");
-                printf(">>Credentials verified\n\nChoose the new password");
+                printf(">>Credentials verified\n\nChoose the new password\nDo not use special chars: '\"\\%%/`");
                 printf("\nPassword:\t");
 
                 fgets(password, 255, stdin);
                 if (password[strlen(password) - 1] == '\n') password[strlen(password) - 1] = '\0';
 
-                updateUserPassword(db, userSession->id_user, password);
-                printf("\nUser password Updated:\t");
+                if (updateUserPassword(db, userSession->id_user, password) == CHANGE_OK) printf("\nUser password Updated");
+                else printf("\nFailed to update password");
 
             }else printf(">>Wrong profile credentials\n");
         }
