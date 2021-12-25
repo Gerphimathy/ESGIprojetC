@@ -292,7 +292,21 @@ void cmdManageFeeds(database  *db, session *userSession){
                     }
                 }else printf("This feed does not exist");
 
-            }else printf("\nCredentials failed match\n");
+            }else printf("\nCredentials verification failed\n");
+        }
+        if (strcmp(action, "delete") == 0){
+            if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK) {
+                printf("\n\nCredentials Verified:\nEnter the name of the feed to delete:\n\nfeed:\t");
+                fgets(name, 255, stdin);
+                if (name[strlen(name) - 1] == '\n') name[strlen(name) - 1] = '\0';
+                feedId = getFeedId(db, name, userSession->id_user);
+                if (feedId != ACCESS_ERROR) {
+                    deleteFeed(db, feedId);
+                    printf("Feed successfully deleted");
+                }
+                else printf("This feed does not exist");
+
+            }else printf("\nCredentials verification failed\n");
         }
     }while(strcmp(action, "quit")!=0);
 }

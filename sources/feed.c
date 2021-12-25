@@ -130,3 +130,24 @@ int renameFeed(database *db, char newName[255], int feedId, int userId){
     }
 
 }
+
+/**
+ * @usage Removes a feed from the database
+ * @param db -- database structure
+ * @param feedId -- id of the feed to remove
+ */
+void deleteFeed(database *db, int feedId){
+    char delete[255] = "DELETE FROM rel_ch_feed WHERE id_feed = ?;";
+
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, feedId);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+
+    strcpy(delete, "DELETE FROM feed WHERE _id = ?;");
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, 1, feedId);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+
+}
