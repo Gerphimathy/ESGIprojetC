@@ -13,4 +13,6 @@ void cmdTweakConfLoop(configType* conf, int nbPossibleValues, char possibleValue
 
 void cmdManageFeeds(database  *db, session *userSession);
 
+void cmdSession(database *db, session *userSession, fileConfig *defaultConfig);
+
 #endif //CLIENTSRC_C_TERMINAL_H
