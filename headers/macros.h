@@ -24,6 +24,7 @@
 #define CHANGE_OK 1
 
 #define ACCESS_ERROR -1
+#define ACCESS_SUCCESS 1
 
 #define SALT "OJIH8UGYV7_çà26481502"
 

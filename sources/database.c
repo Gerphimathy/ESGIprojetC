@@ -240,3 +240,36 @@ int getChannelCount(database * db, int feedId){
     sqlite3_finalize(db->statement);
     return count;
 }
+
+/**
+ * @usage Builds a list of usernames into dest, starting from firstIndex and ending on firstIndex + amount
+ * Will check if trying to access out of bounds value
+ * @param db -- database structure
+ * @param firstIndex -- first index of the user list to get
+ * @param amount -- amount of usernames to select
+ * @param dest -- Value where the result will be built
+ * @return ACCESS_SUCCESS in case of success, ACCESS_FAILURE in case of failure
+ */
+int getUsernameList(database * db, int firstIndex, int amount, char dest[][255]){
+    if(firstIndex+amount > getUserCount(db))return ACCESS_ERROR;
+
+    char * req = "SELECT username FROM users LIMIT @amount OFFSET @firstIndex;";
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, req, -1, &db->statement, NULL);
+    if(db->databaseConnection != SQLITE_OK){
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db->databaseHandle));
+        return ACCESS_ERROR;
+    }
+    sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@amount"), amount);
+    sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@firstIndex"), firstIndex);
+
+    for (int i = 0; i < amount; ++i) {
+        int step = sqlite3_step(db->statement);
+        if (step != SQLITE_ROW){
+            sqlite3_finalize(db->statement);
+            return ACCESS_ERROR;
+        }
+        strcpy(dest[i], sqlite3_column_text(db->statement, 0));
+    }
+    sqlite3_finalize(db->statement);
+    return ACCESS_SUCCESS;
+}
