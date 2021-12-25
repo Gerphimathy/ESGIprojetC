@@ -8,6 +8,7 @@
 #include "../headers/database.h"
 #include "../headers/login.h"
 #include "../headers/config.h"
+#include "../headers/feed.h"
 
 
 /**

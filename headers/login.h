@@ -9,24 +9,6 @@
 */
 
 /**
-* @usage session structures
-*/
-
-
-typedef struct channel{
-    int id_twt;
-    char name[255];
-    char twt_link[255];
-    char yt_link[255];
-}channel;
-
-typedef struct feed{
-    int id_feed;
-    char name[255];
-    int feedSize;
-}feed;
-
-/**
  * @usage Created after logging in, stores info of logged in user
  * avoids having to repeatedly access the database
  */

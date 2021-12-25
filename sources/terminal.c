@@ -205,6 +205,11 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
     } while (strcmp(action, "quit") != 0);
 }
 
+/**
+ * @usage main feed management loop in terminal mode
+ * @param db -- database structure
+ * @param userSession -- user session structure
+ */
 void cmdManageFeeds(database  *db, session *userSession){
     char action[255];
     char subAction[255];

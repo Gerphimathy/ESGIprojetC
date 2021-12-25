@@ -11,7 +11,8 @@ add_executable(ProjetC clientSrc.c headers/macros.h
         sources/database.c headers/database.h
         sources/jsonParse.c headers/jsonParse.h
         sources/login.c headers/login.h
-        sources/terminal.c headers/terminal.h)
+        sources/terminal.c headers/terminal.h
+        sources/feed.c headers/feed.h)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
