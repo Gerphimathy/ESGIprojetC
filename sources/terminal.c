@@ -10,6 +10,7 @@
 #include "../headers/config.h"
 #include "../headers/login.h"
 #include "../headers/terminal.h"
+#include "../headers/feed.h"
 
 /**
  * @usage main loop for CMD execution
@@ -214,6 +215,7 @@ void cmdManageFeeds(database  *db, session *userSession){
     char action[255];
     char subAction[255];
     char feeds[5][255];
+    char name[255];
     do {
         fflush(stdin);
         strcpy(action, "none");
@@ -229,6 +231,21 @@ void cmdManageFeeds(database  *db, session *userSession){
         fgets(action, 255, stdin);
         if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
 
+        if (strcmp(action, "create") == 0){
+            system("cls");
+            fflush(stdin);
+            printf("Create Feed\nDo not use Special characters for the name: '\"\\%%/`");
+
+            printf("\nFeed name:\t");
+            fgets(name, 255, stdin);
+            if (name[strlen(name) - 1] == '\n') name[strlen(name) - 1] = '\0';
+
+            system("cls");
+            int status = createFeed(db, name, userSession->id_user);
+            if (status == REGISTER_SUCCESS) printf(">>Feed Successfully created");
+            else fprintf(stderr, ">>Feed Creation failure");
+            if (status == REGISTER_DUPLICATE) fprintf(stderr, "\nThis profile already has a feed with this name");
+        }
         if (strcmp(action, "list") == 0){
             int page = 1;
             int feedCount = getFeedCount(db, userSession->id_user);

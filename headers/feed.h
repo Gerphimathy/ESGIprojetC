@@ -14,4 +14,6 @@ typedef struct feed{
     int feedSize;
 }feed;
 
+int createFeed(database *db, char name [255], int usedId);
+
 #endif //CLIENTSRC_C_FEED_H
