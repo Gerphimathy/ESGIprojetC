@@ -84,24 +84,25 @@ void cmdMain(database *db, fileConfig* config) {
             int userCount = getUserCount(db);
             if(userCount != ACCESS_ERROR) {
                 int nbPages = userCount / 5 + (userCount % 5 > 0 ? 1 : 0);
+                if (nbPages != 0) {
+                    do {
+                        int lim = ((page == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
 
-                do {
-                    int lim = ((page == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
+                        getUsernameList(db, 5 * (page - 1), lim, profiles);
 
-                    getUsernameList(db, 5 * (page - 1), lim, profiles);
+                        system("cls");
+                        printf("Profiles: Page %d / %d", page, nbPages);
+                        for (int i = 0; i < lim; ++i) fprintf(stdout, "\n%s", profiles[i]);
+                        printf("\n<<previous|quit|next>>\n");
+                        fgets(subAction, 255, stdin);
+                        if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
 
-                    system("cls");
-                    printf("Profiles: Page %d / %d", page, nbPages);
-                    for (int i = 0; i < lim; ++i) fprintf(stdout, "\n%s", profiles[i]);
-                    printf("\n<<previous|quit|next>>\n");
-                    fgets(subAction, 255, stdin);
-                    if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
+                        if (strcmp(subAction, "next") == 0 && page != nbPages)page++;
+                        if (strcmp(subAction, "previous") == 0 && page != 1)page--;
 
-                    if (strcmp(subAction, "next") == 0 && page != nbPages)page++;
-                    if (strcmp(subAction, "previous") == 0 && page != 1)page--;
-
-                } while (strcmp(subAction, "quit") != 0);
-            }else printf("Error while accessing database");
+                    } while (strcmp(subAction, "quit") != 0);
+                } else printf("\n>>Error while accessing database\n");
+            }else printf("\n>>There is no registered profiles\n");
         }
 
     } while (strcmp(action, "quit") != 0);
@@ -124,6 +125,8 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
         printf("\nChoose Action:"
                "\n\nfeeds\t\t-\tManage feeds"
                "\nconf\t\t-\tEdit personal configurations"
+               //TODO: Linku
+               "\nlink\t\t-\tLink account"
                "\npass\t\t-\tEdit password"
                "\ndel\t\t-\tDelete profile"
                "\nquit\t\t-\tDisconnects from session"
@@ -164,7 +167,7 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
                 }
             }
         }
-
+        if (strcmp(action, "feeds") == 0) cmdManageFeeds(db, userSession);
         if (strcmp(action, "pass") == 0){
             if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK){
                 fflush(stdin);
@@ -200,6 +203,53 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
         }
 
     } while (strcmp(action, "quit") != 0);
+}
+
+void cmdManageFeeds(database  *db, session *userSession){
+    char action[255];
+    char subAction[255];
+    char feeds[5][255];
+    do {
+        fflush(stdin);
+        strcpy(action, "none");
+        printf("\nChoose Action:"
+               "\n\nlist\t\t-\tList feeds"
+               //TODO: Access a feed
+               "\nfeed\t\t-\tAccess a feed"
+               "\nrename\t\t-\tRename a feed"
+               "\ncreate\t\t-\tCreate a feed"
+               "\ndelete\t\t-\tDelete a feed"
+               "\nquit\t\t-\tReturn to profile configuration"
+               "\n");
+        fgets(action, 255, stdin);
+        if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
+
+        if (strcmp(action, "list") == 0){
+            int page = 1;
+            int feedCount = getFeedCount(db, userSession->id_user);
+            if(feedCount != ACCESS_ERROR) {
+                int nbPages = feedCount / 5 + (feedCount % 5 > 0 ? 1 : 0);
+                if (nbPages != 0) {
+                    do {
+                        int lim = ((page == nbPages && feedCount % 5 != 0) ? feedCount % 5 : 5);
+
+                        getFeedsList(db, 5 * (page - 1),lim, userSession->id_user, feeds);
+
+                        system("cls");
+                        printf("Feeds: Page %d / %d", page, nbPages);
+                        for (int i = 0; i < lim; ++i) fprintf(stdout, "\n%s", feeds[i]);
+                        printf("\n<<previous|quit|next>>\n");
+                        fgets(subAction, 255, stdin);
+                        if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
+
+                        if (strcmp(subAction, "next") == 0 && page != nbPages)page++;
+                        if (strcmp(subAction, "previous") == 0 && page != 1)page--;
+
+                    } while (strcmp(subAction, "quit") != 0);
+                } else printf("\n>>Error while accessing database\n");
+            }else printf("\n>>This profile has no feeds\n");
+        }
+    }while(strcmp(action, "quit")!=0);
 }
 
 /**

@@ -34,6 +34,8 @@ void deleteUser(database * db, int id);
 
 int getUsernameList(database * db, int firstIndex, int amount, char dest[][255]);
 
+int getFeedsList(database * db, int firstIndex, int amount, int userId, char dest[][255]);
+
 ///We tried having these 3 functions in a single one
 ///However SQLITE3 will not accept dynamic table name
 

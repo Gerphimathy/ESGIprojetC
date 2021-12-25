@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sqlite3.h>
 #include <openssl/sha.h>
 
@@ -38,7 +39,7 @@ int login(database *db, session *targetSession, char username[255], char passwor
             id = (int) sqlite3_column_int(db->statement, 0);
             targetSession->id_user = id;
 
-            strcpy(targetSession->username, sqlite3_column_text16(db->statement, 1));
+            strcpy(targetSession->username, sqlite3_column_text(db->statement, 1));
 
             strcpy(targetSession->yt_token, sqlite3_column_text(db->statement, 2));
             strcpy(targetSession->twt_token, sqlite3_column_text(db->statement, 3));
