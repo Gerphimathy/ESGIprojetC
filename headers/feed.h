@@ -22,6 +22,4 @@ int renameFeed(database *db, char newName[255], int feedId,int userId);
 
 void deleteFeed(database *db, int feedId);
 
-void cmdSession(database *db, session *userSession, fileConfig *defaultConfig);
-
 #endif //CLIENTSRC_C_FEED_H
