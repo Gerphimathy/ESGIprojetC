@@ -75,7 +75,7 @@ void cmdMain(database *db, fileConfig* config) {
             else fprintf(stderr, ">>Local Account Creation failure");
             if (status == REGISTER_DUPLICATE) fprintf(stderr, "\nProfile with this username already exists");
         }
-        if (strcmp(action, "conf") == 0) tweakConfigs(config);
+        if (strcmp(action, "conf") == 0) cmdTweakConfigs(config);
 
     } while (strcmp(action, "quit") != 0);
 }
@@ -133,7 +133,7 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
                     updateUserConf(db, userSession->id_user,"none");
                     printf("\n>>Configuration File Reset");
                 }else{
-                    tweakConfigs(&userSession->config);
+                    cmdTweakConfigs(&userSession->config);
                 }
             }
         }
@@ -198,4 +198,55 @@ int cmdDoubleCheck(database * db, int id){
 
     if (verifyCredentials(db, id, username, pass) == CREDENTIALS_VERIFIED) return CHECK_OK;
     else return CHECK_NO;
+}
+
+/**
+ * @usage Tweak config file in cmd mode
+ * @param targetConfig -- config file to tweak
+ */
+void cmdTweakConfigs(fileConfig* targetConfig){
+
+    parseConfigFile(targetConfig);
+    char vals[2][10];
+
+    //TODO: Add to this when adding new configs
+    strcpy(vals[0],"true");
+    strcpy(vals[1],"false");
+    cmdTweakConfLoop(&targetConfig->hasGui, 2, vals);
+
+    buildConfigFile(targetConfig);
+
+}
+
+/**
+ * @usage Loop to tweak specific config in cmd mode, used by tweakConfigs
+ * @param conf -- target configuration to tweak
+ * @param nbPossibleValues -- Number of possible values
+ * @param possibleValues -- List of possible values
+ */
+void cmdTweakConfLoop(configType* conf, int nbPossibleValues, char possibleValues[][10]){
+    char assignedVal[10];
+    short err = 0;
+    do {
+        system("cls");
+        if(err){
+            fprintf(stderr, ">>Please enter one of the indicated possible values\n");
+        }
+        err = 1;
+        fprintf(stdout, "%s: %s\n", conf->name, conf->description);
+        for (int i = 0; i < nbPossibleValues; ++i) {
+            if(strcmp(conf->value, possibleValues[i])==0) fprintf(stdout, "|>>%s|", possibleValues[i]);
+            else fprintf(stdout, "|%s|", possibleValues[i]);
+        }
+        printf("\n");
+        fflush(stdin);
+        fgets(assignedVal,10, stdin);
+        if (assignedVal[strlen(assignedVal) - 1] == '\n') assignedVal[strlen(assignedVal) - 1] = '\0';
+        for (int i = 0; i < nbPossibleValues && err; ++i) {
+            if(strcmp(assignedVal, possibleValues[i])==0){
+                err = 0;
+                strcpy(conf->value, assignedVal);
+            }
+        }
+    }while(err);
 }
