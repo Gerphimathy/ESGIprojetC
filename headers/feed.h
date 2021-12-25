@@ -16,4 +16,8 @@ typedef struct feed{
 
 int createFeed(database *db, char name [255], int usedId);
 
+int getFeedId(database *db, char name[255], int userId);
+
+int renameFeed(database *db, char newName[255], int feedId,int userId);
+
 #endif //CLIENTSRC_C_FEED_H

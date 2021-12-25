@@ -216,6 +216,8 @@ void cmdManageFeeds(database  *db, session *userSession){
     char subAction[255];
     char feeds[5][255];
     char name[255];
+    char newName[255];
+    int feedId;
     do {
         fflush(stdin);
         strcpy(action, "none");
@@ -270,6 +272,27 @@ void cmdManageFeeds(database  *db, session *userSession){
                     } while (strcmp(subAction, "quit") != 0);
                 } else printf("\n>>Error while accessing database\n");
             }else printf("\n>>This profile has no feeds\n");
+        }
+        if (strcmp(action, "rename") == 0){
+            if (cmdDoubleCheck(db, userSession->id_user) == CHECK_OK) {
+                printf("\n\nCredentials Verified:\nEnter the name of the feed to rename:\n\nfeed:\t");
+                fgets(name, 255, stdin);
+                if (name[strlen(name) - 1] == '\n') name[strlen(name) - 1] = '\0';
+                feedId = getFeedId(db, name, userSession->id_user);
+                if (feedId != ACCESS_ERROR){
+                    printf("\nEnter the new name for the feed:\nDo not use Special characters: '\"\\%%/`:\n\nnew name:\t");
+                    fgets(newName, 255, stdin);
+                    if (newName[strlen(newName) - 1] == '\n') newName[strlen(newName) - 1] = '\0';
+
+                    int status = renameFeed(db, newName, feedId, userSession->id_user);
+                    if (status == REGISTER_ERR) printf("\nCould not apply new name");
+                    else {
+                        if (status == REGISTER_DUPLICATE) printf("\nFeed with that name already exists");
+                        else printf("\nFeed successfully renamed");
+                    }
+                }else printf("This feed does not exist");
+
+            }else printf("\nCredentials failed match\n");
         }
     }while(strcmp(action, "quit")!=0);
 }
