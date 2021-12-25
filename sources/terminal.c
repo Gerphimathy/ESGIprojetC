@@ -18,18 +18,21 @@
  */
 void cmdMain(database *db, fileConfig* config) {
     char action[255];
+    char subAction[255];
     char username[255];
     char pass[255];
+    char profiles[5][255];
     session userSession;
 
     do {
         fflush(stdin);
         strcpy(action, "none");
         printf("\nChoose Action:"
-               "\n\nquit\t\t-\tCloses client"
+               "\n\nprofiles\t-\tList all existing profiles"
                "\nlogin\t\t-\tLog into profile"
                "\nregister\t-\tRegister profile"
                "\nconf\t\t-\tEdit master configuration"
+               "\nquit\t\t-\tCloses client"
                "\n");
         fgets(action, 255, stdin);
         if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
@@ -76,6 +79,30 @@ void cmdMain(database *db, fileConfig* config) {
             if (status == REGISTER_DUPLICATE) fprintf(stderr, "\nProfile with this username already exists");
         }
         if (strcmp(action, "conf") == 0) cmdTweakConfigs(config);
+        if (strcmp(action, "profiles") == 0){
+            int page = 1;
+            int userCount = getUserCount(db);
+            if(userCount != ACCESS_ERROR) {
+                int nbPages = userCount / 5 + (userCount % 5 > 0 ? 1 : 0);
+
+                do {
+                    int lim = ((page == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
+
+                    getUsernameList(db, 5 * (page - 1), lim, profiles);
+
+                    system("cls");
+                    printf("Profiles: Page %d / %d", page, nbPages);
+                    for (int i = 0; i < lim; ++i) fprintf(stdout, "\n%s", profiles[i]);
+                    printf("\n<<previous|quit|next>>\n");
+                    fgets(subAction, 255, stdin);
+                    if (subAction[strlen(subAction) - 1] == '\n') subAction[strlen(subAction) - 1] = '\0';
+
+                    if (strcmp(subAction, "next") == 0 && page != nbPages)page++;
+                    if (strcmp(subAction, "previous") == 0 && page != 1)page--;
+
+                } while (strcmp(subAction, "quit") != 0);
+            }else printf("Error while accessing database");
+        }
 
     } while (strcmp(action, "quit") != 0);
 }
@@ -95,11 +122,11 @@ void cmdSession(database *db, session *userSession, fileConfig *defaultConfig){
         fflush(stdin);
         strcpy(action, "none");
         printf("\nChoose Action:"
-               "\n\nquit\t\t-\tDisconnects from session"
-               "\nfeeds\t\t-\tManage feeds"
+               "\n\nfeeds\t\t-\tManage feeds"
                "\nconf\t\t-\tEdit personal configurations"
                "\npass\t\t-\tEdit password"
                "\ndel\t\t-\tDelete profile"
+               "\nquit\t\t-\tDisconnects from session"
                "\n");
         fgets(action, 255, stdin);
         if (action[strlen(action) - 1] == '\n') action[strlen(action) - 1] = '\0';
