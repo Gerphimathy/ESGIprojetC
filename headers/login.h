@@ -26,8 +26,6 @@ int registerAccount(database *db, char username [255], char password[255]);
 
 void hashPass(char* pass, unsigned char dest[512]);
 
-void cmdSession(database *db, session *userSession, fileConfig *defaultConfig);
-
 int verifyCredentials(database *db, int id, char username[255], char password[255]);
 
 
