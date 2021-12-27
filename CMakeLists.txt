@@ -21,11 +21,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 find_package(PkgConfig REQUIRED)
 
 # Add GTK3 to project
-pkg_check_modules(GTK4 REQUIRED gtk4)
-include_directories(${GTK4_INCLUDE_DIRS})
-link_directories(${GTK4_LIBRARY_DIRS})
-add_definitions(${GTK4_CFLAGS_OTHER})
-target_link_libraries(ProjetC ${GTK4_LIBRARIES})
+pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+include_directories(${GTK3_INCLUDE_DIRS})
+link_directories(${GTK3_LIBRARY_DIRS})
+add_definitions(${GTK3_CFLAGS_OTHER})
+target_link_libraries(ProjetC ${GTK3_LIBRARIES})
 
 # Add SQLite3 to project
 find_package(SQLite3)
