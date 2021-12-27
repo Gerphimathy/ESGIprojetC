@@ -20,7 +20,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # Use PKG config to find GTK
 find_package(PkgConfig REQUIRED)
 
-# Add GTK4 to project
+# Add GTK3 to project
 pkg_check_modules(GTK4 REQUIRED gtk4)
 include_directories(${GTK4_INCLUDE_DIRS})
 link_directories(${GTK4_LIBRARY_DIRS})

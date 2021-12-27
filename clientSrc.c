@@ -96,6 +96,12 @@ void parseArgs(commandLineParameters* params, fileConfig *config, int argc, char
     }
 }
 
+typedef struct windowData{
+    database *db;
+    fileConfig *config;
+    session *session;
+}windowData;
+
 /**
  * Parses config file into config structure
  * Parses command line parameters into parameters structure
@@ -165,9 +171,14 @@ int main(int argc, char **argv) {
 
     ///Create Window or Terminal using the priority policy:
     if (strcmp(lineParams.hasGui, "true") == 0) {
-        //TODO: Add fast session to this if
-        createWindow(0, argv);
+
+        windowData data;
+        data.db = &localDatabase;
+        data.config = &masterConfig;
+        data.session = &fastSession;
+
         appStatus = APP_LAUNCHED;
+        initWindows(argv, &data);
     }
     if (strcmp(lineParams.hasGui, "false") == 0) {
         if (fastSession.id_user != LOGIN_ERR) cmdSession(&localDatabase, &fastSession, &masterConfig);

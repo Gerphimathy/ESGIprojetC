@@ -5,10 +5,6 @@
  * @Usage GTK Windows: Actions, creation and activation
  */
 
-void destroy (GSimpleAction *action, GVariant *parameter, gpointer user_data);
-
-void activate(GtkApplication *client, gpointer user_data);
-
-int createWindow(int argc, char **argv);
+void initWindows(char **argv, gpointer data);
 
 #endif //CLIENTSRC_C_WINDOW_H
