@@ -15,10 +15,13 @@ typedef struct windowData{
     database * db;
     fileConfig * config;
     session * session;
+    GtkBuilder *builder;
 }windowData;
 
-void initLoginWindow(GtkWidget *loginWindow, GtkBuilder *builder, gpointer data);
+void initLoginWindow(GtkWidget *loginWindow, gpointer data);
 
 void initWindows(char **argv, gpointer data);
+
+void onProfilesListScroll(GtkAdjustment *scale, gpointer data);
 
 #endif //CLIENTSRC_C_WINDOW_H
