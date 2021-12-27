@@ -1,12 +1,10 @@
 #ifndef CLIENTSRC_C_DATABASE_H
 #define CLIENTSRC_C_DATABASE_H
 
-/**
- * @usage Communicating with database
- */
+#include <sqlite3.h>
 
 /**
- * @usage database information and usage structures
+ * @usage Communicating with database
  */
 
 /**

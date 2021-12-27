@@ -98,12 +98,6 @@ void parseArgs(commandLineParameters* params, fileConfig *config, int argc, char
     }
 }
 
-typedef struct windowData{
-    database *db;
-    fileConfig *config;
-    session *session;
-}windowData;
-
 /**
  * Parses config file into config structure
  * Parses command line parameters into parameters structure
