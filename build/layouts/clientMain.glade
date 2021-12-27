@@ -56,8 +56,8 @@
                             <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkLabel" id="loginError">
+                                <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Error: %s</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -179,8 +179,8 @@
                             <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkLabel" id="registerError">
+                                <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Error: %s</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -305,8 +305,8 @@
                             <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkLabel" id="profileListError">
+                                <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Error: %s</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
