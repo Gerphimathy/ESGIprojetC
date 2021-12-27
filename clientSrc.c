@@ -3,6 +3,8 @@
 #include <sqlite3.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <gtk/gtkx.h>
+#include <signal.h>
 #include <json-c/json.h>
 #include <openssl/sha.h>
 #include <unistd.h>
