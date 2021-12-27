@@ -440,7 +440,7 @@ Do not use '"\%%/`</property>
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="settingsButton">
+          <object class="GtkButton" id="loginSettings">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
@@ -450,6 +450,38 @@ Do not use '"\%%/`</property>
             <property name="x">458</property>
             <property name="y">660</property>
           </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkWindow" id="settingsWindow">
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkStack" id="stack2">
+            <property name="width-request">400</property>
+            <property name="height-request">500</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-start">50</property>
+            <property name="margin-end">50</property>
+            <property name="margin-top">100</property>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackSwitcher">
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="stack">stack2</property>
+          </object>
         </child>
       </object>
     </child>
