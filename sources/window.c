@@ -15,6 +15,7 @@
  */
 
 ///Used to circumvent a bug with the state-set callback
+///Removing debugPointer would lead to a nullPointer exception when state-set is called back
 gpointer debugPointer;
 
 /**
@@ -58,6 +59,7 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
 
 void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
     ///If data has been wiped, correct it
+    ///Removing debugPointer would lead to a nullPointer exception when state-set is called back
     if(data != debugPointer){
         data = debugPointer;
     }
