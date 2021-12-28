@@ -14,6 +14,7 @@
  * @Usage GTK Windows: Actions, creation and activation
  */
 
+///Used to circumvent a bug with the state-set callback
 gpointer debugPointer;
 
 /**
@@ -56,6 +57,7 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
 }
 
 void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
+    ///If data has been wiped, correct it
     if(data != debugPointer){
         data = debugPointer;
     }
@@ -179,11 +181,14 @@ void initConfigWindow(GtkWidget *settingsWindow, gpointer data){
     updateConfigWindow(GTK_BUTTON(gtk_builder_get_object(uData->builder,"loginSettings")), data);
 }
 
+
+/**
+ * @usage update config window when it is called
+ * @param button -- the button pressed
+ * @param data -- user data
+ */
 void updateConfigWindow(GtkButton *button, gpointer data){
     windowData *uData = data;
-    if (debugPointer != data){
-        debugPointer = data;
-    }
 
     GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
 
