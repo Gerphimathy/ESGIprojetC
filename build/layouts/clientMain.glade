@@ -470,18 +470,54 @@ Do not use '"\%%/`</property>
             <property name="margin-end">50</property>
             <property name="margin-top">100</property>
             <child>
-              <placeholder/>
+              <object class="GtkFixed" id="generalStack">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkSwitch" id="hasGuiGeneral">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-top">50</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="margin-start">80</property>
+                    <property name="margin-top">55</property>
+                    <property name="label" translatable="yes">Use GUI by default</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="name">generalConfig</property>
+                <property name="title" translatable="yes">General</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFixed" id="userStack">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+              </object>
+              <packing>
+                <property name="name">userConfigStack</property>
+                <property name="title" translatable="yes">User</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
         </child>
         <child>
-          <object class="GtkStackSwitcher">
-            <property name="width-request">100</property>
-            <property name="height-request">80</property>
+          <object class="GtkStackSwitcher" id="configSwitch">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="stack">stack2</property>
           </object>
+          <packing>
+            <property name="y">100</property>
+          </packing>
         </child>
       </object>
     </child>

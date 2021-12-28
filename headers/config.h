@@ -36,8 +36,6 @@ typedef struct fileConfig {
 
 }fileConfig;
 
-typedef struct configType configType;
-
 void assignConfigs(fileConfig* targetConfig);
 
 void buildConfigFile(fileConfig *targetConfig);

@@ -3,10 +3,12 @@
 #include <gtk/gtk.h>
 #include <gtk/gtkx.h>
 #include <signal.h>
+
 #include "../headers/database.h"
 #include "../headers/login.h"
 #include "../headers/window.h"
 #include "../headers/macros.h"
+#include "../headers/config.h"
 
 /**
  * @Usage GTK Windows: Actions, creation and activation
@@ -19,6 +21,7 @@
  */
 void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
     windowData *uData = data;
+    printf("\n%p", uData);
 
     GtkLabel *error = GTK_LABEL(gtk_builder_get_object(uData->builder, "profileListError"));
 
@@ -51,6 +54,18 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
     }
 }
 
+void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
+    windowData *uData = data;
+    printf("\n%p", uData);
+    gboolean status = gtk_switch_get_active(configSwitch);
+    if(status){
+        strcpy(uData->config->hasGui.value , "false");
+    }else{
+        strcpy(uData->config->hasGui.value , "true");
+    }
+    buildConfigFile(uData->config);
+}
+
 /**
  * @usage treat register button press
  * @param registerButton -- register button widget
@@ -58,6 +73,7 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
  */
 void onRegister(GtkButton *registerButton, gpointer data){
     windowData *uData = data;
+    printf("\n%p", uData);
     GtkLabel * error = GTK_LABEL(gtk_builder_get_object(uData->builder, "registerError"));
 
     char username[255];
@@ -97,6 +113,7 @@ void onRegister(GtkButton *registerButton, gpointer data){
 void initLoginWindow(GtkWidget *loginWindow, gpointer data){
     ///We grab the data
     windowData *uData = data;
+    printf("\n%p", uData);
 
     ///We connect the close button to quitting
     g_signal_connect(loginWindow, "destroy", G_CALLBACK(gtk_main_quit), data);
@@ -106,6 +123,7 @@ void initLoginWindow(GtkWidget *loginWindow, gpointer data){
 
     GtkButton *registerButton = GTK_BUTTON(gtk_builder_get_object(uData->builder, "registerButton"));
     GtkButton *loginButton = GTK_BUTTON(gtk_builder_get_object(uData->builder, "loginButton"));
+    GtkButton *loginSettings = GTK_BUTTON(gtk_builder_get_object(uData->builder, "loginSettings"));
 
     GtkLabel *profileLabels[] = {
             GTK_LABEL(gtk_builder_get_object(uData->builder, "profileName1")),
@@ -131,7 +149,58 @@ void initLoginWindow(GtkWidget *loginWindow, gpointer data){
     }
 
     g_signal_connect(registerButton, "clicked", G_CALLBACK(onRegister), data);
+    g_signal_connect(loginSettings, "clicked", G_CALLBACK(updateConfigWindow), data);
+}
 
+/**
+ * @usage initializes config window
+ * @param options -- pressed button, not important
+ * @param data -- user data
+ */
+void initConfigWindow(GtkWidget *settingsWindow, gpointer data){
+    windowData *uData = data;
+    printf("\n%p", uData);
+
+    GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
+
+    GtkSwitch *hasGuiGeneral = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
+
+    g_signal_connect(settingsWindow, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
+    g_signal_connect(settingsWindow, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
+
+    ///Lib Bug: Frees the data pointer
+    /*
+    g_signal_connect(hasGuiGeneral, "state-set", G_CALLBACK(updateHasGuiGeneral), data);
+    */
+
+    g_signal_connect(hasGuiGeneral, "button-press-event", G_CALLBACK(updateHasGuiGeneral), data);
+
+    if(strcmp(uData->config->hasGui.value,"true")==0) gtk_switch_set_active(hasGuiGeneral, TRUE);
+    else gtk_switch_set_active(hasGuiGeneral, FALSE);
+
+    if(uData->session->id_user ==LOGIN_ERR) gtk_widget_hide(configSwitch);
+    else{
+        gtk_widget_show(configSwitch);
+    }
+}
+
+void updateConfigWindow(GtkButton *button, gpointer data){
+    windowData *uData = data;
+    printf("\n%p", uData);
+
+    GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
+
+    GtkSwitch *hasGuiGeneral = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
+
+    if(strcmp(uData->config->hasGui.value,"true")==0) gtk_switch_set_active(hasGuiGeneral, TRUE);
+    else gtk_switch_set_active(hasGuiGeneral, FALSE);
+
+    if(uData->session->id_user ==LOGIN_ERR) gtk_widget_hide(configSwitch);
+    else{
+        gtk_widget_show(configSwitch);
+    }
+
+    gtk_widget_show(GTK_WIDGET(gtk_builder_get_object(uData->builder, "settingsWindow")));
 }
 
 /**
@@ -142,14 +211,17 @@ void initLoginWindow(GtkWidget *loginWindow, gpointer data){
 void initWindows(char **argv, gpointer data){
     gtk_init(0, &argv);
     windowData *uData = data;
+    printf("\n%p", uData);
 
     GtkBuilder *builder = gtk_builder_new_from_file("layouts/clientMain.glade");
     GtkWidget *loginWindow = GTK_WIDGET(gtk_builder_get_object(builder, "loginWindow"));
+    GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(builder, "settingsWindow"));
 
     uData->builder = builder;
 
     ///Init login window
     initLoginWindow(loginWindow, data);
+    initConfigWindow(settingsWindow, data);
 
     gtk_builder_connect_signals(builder, data);
 

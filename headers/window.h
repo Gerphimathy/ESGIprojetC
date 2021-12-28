@@ -24,4 +24,10 @@ void initWindows(char **argv, gpointer data);
 
 void onProfilesListScroll(GtkAdjustment *scale, gpointer data);
 
+void initConfigWindow(GtkWidget *settingsWindow, gpointer data);
+
+void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data);
+
+void updateConfigWindow(GtkButton *button, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H

@@ -32,6 +32,7 @@ void buildConfigFile(fileConfig *targetConfig){
     fprintf(targetConfig->configFile, "%s = %s\n%s\n\n",
             targetConfig->hasGui.name, targetConfig->hasGui.value,targetConfig->hasGui.description);
 
+    fclose(targetConfig->configFile);
 }
 
 /**
@@ -43,7 +44,10 @@ void parseConfigFile(fileConfig* config){//Receives config pointer (needs path a
 
     config->configFile = fopen(config->path, "rb+");
 
-    if (config->configFile == NULL) buildConfigFile(config);
+    if (config->configFile == NULL){
+        buildConfigFile(config);
+        config->configFile = fopen(config->path, "rb+");
+    }
 
     char line[2000];
     fseek(config->configFile, 0, SEEK_SET);
