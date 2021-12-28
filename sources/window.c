@@ -91,6 +91,8 @@ void onRegister(GtkButton *registerButton, gpointer data){
             int regStatus = registerAccount(uData->db, username, password);
             switch (regStatus) {
                 case REGISTER_SUCCESS:
+                    gtk_entry_set_text(userInput, "");
+                    gtk_entry_set_text(passwordInput, "");
                     gtk_label_set_text(error, "Profile successfully created");
                     break;
                 case REGISTER_ERR:
@@ -104,6 +106,48 @@ void onRegister(GtkButton *registerButton, gpointer data){
             }
         }else gtk_label_set_text(error, "Error: Max length is 255 characters");
     }else gtk_label_set_text(error, "Error: Do not use special characters");
+}
+
+/**
+ * @usage treat login button press
+ * @param registerButton -- register button widget
+ * @param data -- user data
+ */
+void onLogin(GtkButton *registerButton, gpointer data){
+    windowData *uData = data;
+    GtkLabel * error = GTK_LABEL(gtk_builder_get_object(uData->builder, "loginError"));
+
+    char username[255];
+    char password[255];
+
+    GtkEntry * userInput = GTK_ENTRY(gtk_builder_get_object(uData->builder, "loginUsername"));
+    GtkEntry * passwordInput = GTK_ENTRY(gtk_builder_get_object(uData->builder, "loginPassword"));
+
+    if(checkForSpeChars(gtk_entry_get_text(userInput)) == CHECK_OK||checkForSpeChars(gtk_entry_get_text(passwordInput))==CHECK_OK){
+        if(strlen(gtk_entry_get_text(userInput))<=255&&strlen(gtk_entry_get_text(passwordInput))<=255){
+            strcpy(username, gtk_entry_get_text(userInput));
+            strcpy(password, gtk_entry_get_text(passwordInput));
+            int logStatus = login(uData->db, uData->session,username, password);
+            if (logStatus == LOGIN_ERR) gtk_label_set_text(error, "Failed to log in");
+            else{
+                gtk_entry_set_text(userInput, "");
+                gtk_entry_set_text(passwordInput, "");
+                gtk_label_set_text(error, " ");
+                updateSessionWindow(GTK_WIDGET(gtk_builder_get_object(uData->builder, "sessionWindow")), data);
+            }
+        }else gtk_label_set_text(error, "Error: Max length is 255 characters");
+    }else gtk_label_set_text(error, "Error: Do not use special characters");
+}
+
+void updateSessionWindow(GtkWidget * sessionWindow,gpointer data){
+    windowData *uData = data;
+    gtk_widget_show(sessionWindow);
+    gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(uData->builder, "loginWindow")));
+}
+
+void initSessionWindow(GtkWidget *window, gpointer data){
+    windowData *uData = data;
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), data);
 }
 
 /**
@@ -150,6 +194,7 @@ void initLoginWindow(GtkWidget *loginWindow, gpointer data){
     }
 
     g_signal_connect(registerButton, "clicked", G_CALLBACK(onRegister), data);
+    g_signal_connect(loginButton, "clicked", G_CALLBACK(onLogin), data);
     g_signal_connect(loginSettings, "clicked", G_CALLBACK(updateConfigWindow), data);
 }
 
@@ -213,17 +258,21 @@ void initWindows(char **argv, gpointer data){
     GtkBuilder *builder = gtk_builder_new_from_file("layouts/clientMain.glade");
     GtkWidget *loginWindow = GTK_WIDGET(gtk_builder_get_object(builder, "loginWindow"));
     GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(builder, "settingsWindow"));
+    GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(builder, "sessionWindow"));
 
     uData->builder = builder;
 
     ///Init login window
     initLoginWindow(loginWindow, data);
     initConfigWindow(settingsWindow, data);
+    initSessionWindow(sessionWindow, data);
 
     gtk_builder_connect_signals(builder, data);
 
-    gtk_widget_show(loginWindow);
+    gtk_widget_hide(sessionWindow);
     gtk_widget_hide(settingsWindow);
+    gtk_widget_show(loginWindow);
+
 
     gtk_main();
 }

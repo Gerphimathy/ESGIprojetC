@@ -6,16 +6,19 @@
 #include "config.h"
 #include "database.h"
 #include "terminal.h"
+#include "feed.h"
+#include "login.h"
 
 /**
  * @Usage GTK Windows: Actions, creation and activation
  */
 
 typedef struct windowData{
-    database * db;
-    fileConfig * config;
-    session * session;
+    database *db;
+    fileConfig *config;
+    session *session;
     GtkBuilder *builder;
+    feed *selectedFeed;
 }windowData;
 
 void initLoginWindow(GtkWidget *loginWindow, gpointer data);
@@ -29,5 +32,11 @@ void initConfigWindow(GtkWidget *settingsWindow, gpointer data);
 void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data);
 
 void updateConfigWindow(GtkButton *button, gpointer data);
+
+void onLogin(GtkButton *registerButton, gpointer data);
+
+void updateSessionWindow(GtkWidget * sessionWindow,gpointer data);
+
+void initSessionWindow(GtkWidget *window, gpointer data);
 
 #endif //CLIENTSRC_C_WINDOW_H
