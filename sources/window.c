@@ -14,6 +14,8 @@
  * @Usage GTK Windows: Actions, creation and activation
  */
 
+gpointer debugPointer;
+
 /**
  * @usage Called when scrolling down the profiles list to update the list
  * @param scale -- scrollbar scale
@@ -21,7 +23,6 @@
  */
 void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
     windowData *uData = data;
-    printf("\n%p", uData);
 
     GtkLabel *error = GTK_LABEL(gtk_builder_get_object(uData->builder, "profileListError"));
 
@@ -55,14 +56,14 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
 }
 
 void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
-    windowData *uData = data;
-    printf("\n%p", uData);
-    gboolean status = gtk_switch_get_active(configSwitch);
-    if(status){
-        strcpy(uData->config->hasGui.value , "false");
-    }else{
-        strcpy(uData->config->hasGui.value , "true");
+    if(data != debugPointer){
+        data = debugPointer;
     }
+    windowData *uData = data;
+    gboolean status = gtk_switch_get_active(configSwitch);
+    if(status)strcpy(uData->config->hasGui.value , "true");
+    else strcpy(uData->config->hasGui.value , "false");
+
     buildConfigFile(uData->config);
 }
 
@@ -73,7 +74,6 @@ void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
  */
 void onRegister(GtkButton *registerButton, gpointer data){
     windowData *uData = data;
-    printf("\n%p", uData);
     GtkLabel * error = GTK_LABEL(gtk_builder_get_object(uData->builder, "registerError"));
 
     char username[255];
@@ -113,7 +113,6 @@ void onRegister(GtkButton *registerButton, gpointer data){
 void initLoginWindow(GtkWidget *loginWindow, gpointer data){
     ///We grab the data
     windowData *uData = data;
-    printf("\n%p", uData);
 
     ///We connect the close button to quitting
     g_signal_connect(loginWindow, "destroy", G_CALLBACK(gtk_main_quit), data);
@@ -159,7 +158,6 @@ void initLoginWindow(GtkWidget *loginWindow, gpointer data){
  */
 void initConfigWindow(GtkWidget *settingsWindow, gpointer data){
     windowData *uData = data;
-    printf("\n%p", uData);
 
     GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
 
@@ -168,32 +166,26 @@ void initConfigWindow(GtkWidget *settingsWindow, gpointer data){
     g_signal_connect(settingsWindow, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
     g_signal_connect(settingsWindow, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
 
-    ///Lib Bug: Frees the data pointer
-    /*
-    g_signal_connect(hasGuiGeneral, "state-set", G_CALLBACK(updateHasGuiGeneral), data);
-    */
-
-    g_signal_connect(hasGuiGeneral, "button-press-event", G_CALLBACK(updateHasGuiGeneral), data);
-
     if(strcmp(uData->config->hasGui.value,"true")==0) gtk_switch_set_active(hasGuiGeneral, TRUE);
     else gtk_switch_set_active(hasGuiGeneral, FALSE);
+
+    ///Lib Bug: Frees the data pointer: Has to be countered using global pointer debug
+    g_signal_connect(hasGuiGeneral, "state-set", G_CALLBACK(updateHasGuiGeneral), data);
 
     if(uData->session->id_user ==LOGIN_ERR) gtk_widget_hide(configSwitch);
     else{
         gtk_widget_show(configSwitch);
     }
+    updateConfigWindow(GTK_BUTTON(gtk_builder_get_object(uData->builder,"loginSettings")), data);
 }
 
 void updateConfigWindow(GtkButton *button, gpointer data){
     windowData *uData = data;
-    printf("\n%p", uData);
+    if (debugPointer != data){
+        debugPointer = data;
+    }
 
     GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
-
-    GtkSwitch *hasGuiGeneral = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
-
-    if(strcmp(uData->config->hasGui.value,"true")==0) gtk_switch_set_active(hasGuiGeneral, TRUE);
-    else gtk_switch_set_active(hasGuiGeneral, FALSE);
 
     if(uData->session->id_user ==LOGIN_ERR) gtk_widget_hide(configSwitch);
     else{
@@ -211,7 +203,7 @@ void updateConfigWindow(GtkButton *button, gpointer data){
 void initWindows(char **argv, gpointer data){
     gtk_init(0, &argv);
     windowData *uData = data;
-    printf("\n%p", uData);
+    debugPointer = data;
 
     GtkBuilder *builder = gtk_builder_new_from_file("layouts/clientMain.glade");
     GtkWidget *loginWindow = GTK_WIDGET(gtk_builder_get_object(builder, "loginWindow"));
@@ -226,6 +218,7 @@ void initWindows(char **argv, gpointer data){
     gtk_builder_connect_signals(builder, data);
 
     gtk_widget_show(loginWindow);
+    gtk_widget_hide(settingsWindow);
 
     gtk_main();
 }
