@@ -47,4 +47,6 @@ void onFeedAddCancel(GtkButton * cancel, gpointer data);
 
 void callAddFeedDialog(GtkButton * button, gpointer data);
 
+void onLogout(GtkButton *logout, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H

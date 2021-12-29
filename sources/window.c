@@ -272,6 +272,27 @@ void callAddFeedDialog(GtkButton * button, gpointer data){
 }
 
 /**
+ * @usage treats disconnecting from a session by hiding dialog windows and removing data
+ * @param logout -- called button
+ * @param data -- user data
+ */
+void onLogout(GtkButton *logout, gpointer data){
+    windowData * uData = data;
+    uData->session->id_user = LOGIN_ERR;
+    uData->selectedFeed = NULL;
+
+    GtkWidget *loginWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "loginWindow"));
+    GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "settingsWindow"));
+    GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "sessionWindow"));
+    GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
+
+    gtk_widget_hide(settingsWindow);
+    gtk_widget_hide(sessionWindow);
+    gtk_widget_hide(GTK_WIDGET(feedAddDialog));
+    gtk_widget_show(loginWindow);
+}
+
+/**
  * ##########################################
  * #                                        #
  * #        Init&Update functions           #
@@ -338,7 +359,10 @@ void initSessionWindow(GtkWidget *window, gpointer data){
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), data);
     g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder,"sessionOptions")),
                      "clicked", G_CALLBACK(updateConfigWindow), data);
-    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "addNewFeed")), "clicked", G_CALLBACK(callAddFeedDialog), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "addNewFeed")),
+                     "clicked", G_CALLBACK(callAddFeedDialog), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "logoutButton")),
+                     "clicked", G_CALLBACK(onLogout), data);
 }
 
 /**
