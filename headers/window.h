@@ -19,6 +19,7 @@ typedef struct windowData{
     session *session;
     GtkBuilder *builder;
     feed *selectedFeed;
+    int feedId;
 }windowData;
 
 void initLoginWindow(GtkWidget *loginWindow, gpointer data);
@@ -48,5 +49,13 @@ void onFeedAddCancel(GtkButton * cancel, gpointer data);
 void callAddFeedDialog(GtkButton * button, gpointer data);
 
 void onLogout(GtkButton *logout, gpointer data);
+
+void initFeedRenameDialog(GtkDialog *dialog, gpointer data);
+
+void onFeedRenameConfirm(GtkButton * confirm, gpointer data);
+
+void onFeedRenameCancel(GtkButton * cancel, gpointer data);
+
+void callFeedRenameDialog(GtkButton * selectedFeed, gpointer data);
 
 #endif //CLIENTSRC_C_WINDOW_H

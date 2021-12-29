@@ -164,6 +164,10 @@ void onLogin(GtkButton *registerButton, gpointer data){
 void onFeedsScroll(GtkScrollbar * scroll, gpointer data){
     windowData * uData = data;
 
+    ///Hide feed renaming/deleting dialogs
+    GtkDialog * feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
+
     GtkLabel * feedsHeader = GTK_LABEL(gtk_builder_get_object(uData->builder, "feeds"));
     GtkAdjustment * scale = GTK_ADJUSTMENT(gtk_builder_get_object(uData->builder, "feedsScale"));
     int feedCount = getFeedCount(uData->db, uData->session->id_user);
@@ -285,11 +289,106 @@ void onLogout(GtkButton *logout, gpointer data){
     GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "settingsWindow"));
     GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "sessionWindow"));
     GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
+    GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
 
     gtk_widget_hide(settingsWindow);
     gtk_widget_hide(sessionWindow);
     gtk_widget_hide(GTK_WIDGET(feedAddDialog));
+    gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
     gtk_widget_show(loginWindow);
+}
+
+/**
+ * @usage called when renaming a feed
+ * @param confirm -- confirm button
+ * @param data -- user data
+ */
+void onFeedRenameConfirm(GtkButton * confirm, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedRenameError"));
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedRenameEntry"));
+
+    if(checkForSpeChars(gtk_entry_get_text(entry)) == CHECK_OK){
+        if(strlen(gtk_entry_get_text(entry))<=255) {
+            int renameStatus = renameFeed(uData->db, gtk_entry_get_text(entry), uData->feedId, uData->session->id_user);// createFeed(uData->db, gtk_entry_get_text(entry), uData->session->id_user);
+            switch (renameStatus) {
+                case REGISTER_DUPLICATE:
+                    gtk_label_set_text(errorLabel, "Error: A feed by that name already exists");
+                    break;
+                case REGISTER_ERR:
+                    gtk_label_set_text(errorLabel, "Error: Unexpected error while trying to access database");
+                    break;
+                case REGISTER_SUCCESS:
+                    gtk_label_set_text(errorLabel, "Feed successfully renamed");
+                    break;
+                default:
+                    break;
+            }
+        }else gtk_label_set_text(errorLabel, "Error: Name max length is 255 characters");
+    }else gtk_label_set_text(errorLabel, "Error: Do not use special characters '\"\\%%/`");
+}
+
+/**
+ * @usage called when canceling renaming a feed, sets everything to 0 and hides the window
+ * @param cancel -- pressed button
+ * @param data -- user data
+ */
+void onFeedRenameCancel(GtkButton * cancel, gpointer data){
+    windowData * uData = data;
+
+    uData->feedId = -1;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedRenameError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedRenameEntry"));
+    gtk_entry_set_text(entry,"");
+
+    GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedAddDialog));
+}
+
+/**
+ *
+ * @param selectedFeed
+ * @param data
+ */
+void callFeedRenameDialog(GtkButton * selectedFeed, gpointer data){
+    windowData * uData = data;
+
+    GtkButton * renameFeedButtons[] = {
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename1")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename2")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename3")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename4")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename5")),
+    };
+
+    GtkLabel * feedNames[] = {
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName1")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName2")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName3")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName4")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName5")),
+    };
+
+    GtkDialog * feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedRenameError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedRenameEntry"));
+    gtk_entry_set_text(entry,"");
+
+    uData->feedId = -1;
+    for(int i = 0; i<5; i++){
+        if (renameFeedButtons[i] == selectedFeed)
+            uData->feedId = getFeedId(uData->db, gtk_label_get_text(feedNames[i]), uData->session->id_user);
+    }
+
+    gtk_widget_show(GTK_WIDGET(feedRenameDialog));
 }
 
 /**
@@ -363,6 +462,16 @@ void initSessionWindow(GtkWidget *window, gpointer data){
                      "clicked", G_CALLBACK(callAddFeedDialog), data);
     g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "logoutButton")),
                      "clicked", G_CALLBACK(onLogout), data);
+
+    GtkButton * renameFeeds[] = {
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename1")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename2")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename3")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename4")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename5")),
+    };
+    for (int i = 0; i < 5; ++i) g_signal_connect(renameFeeds[i], "clicked", G_CALLBACK(callFeedRenameDialog), data);
+
 }
 
 /**
@@ -484,6 +593,30 @@ void initFeedAddDialog(GtkDialog *dialog, gpointer data){
 }
 
 /**
+ * @usage initializes feed renaming dialog
+ * @param dialog -- renaming dialog
+ * @param data -- user data
+ */
+void initFeedRenameDialog(GtkDialog *dialog, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedRenameError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedRenameEntry"));
+    gtk_entry_set_text(entry,"");
+
+    GtkButton * accept = GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRenameConfirm"));
+    GtkButton * cancel = GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRenameCancel"));
+
+    g_signal_connect(accept, "clicked", G_CALLBACK(onFeedRenameConfirm), data);
+    g_signal_connect(cancel, "clicked", G_CALLBACK(onFeedRenameCancel), data);
+
+    g_signal_connect(dialog, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
+    g_signal_connect(dialog, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
+}
+
+/**
  * @param argv
  * @return status
  * @usage Creates the main client window then calls activate
@@ -499,6 +632,7 @@ void initWindows(char **argv, gpointer data){
     GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(builder, "settingsWindow"));
     GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(builder, "sessionWindow"));
     GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedAddDialog"));
+    GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedRenameDialog"));
 
     ///Add builder to data for ease of use
     uData->builder = builder;
@@ -508,6 +642,7 @@ void initWindows(char **argv, gpointer data){
     initConfigWindow(settingsWindow, data);
     initSessionWindow(sessionWindow, data);
     initFeedAddDialog(feedAddDialog, data);
+    initFeedRenameDialog(feedRenameDialog, data);
 
     ///Connect signals
     gtk_builder_connect_signals(builder, data);
