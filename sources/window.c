@@ -53,17 +53,24 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
     if (userCount == ACCESS_ERROR) gtk_label_set_text(error, "Error: Could not access local database");
     else{
         int nbPages = userCount / 5 + (userCount % 5 > 0 ? 1 : 0);
-        int page = (int) gtk_adjustment_get_value(scale);
-        int lim = ((page == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
-        char profiles [5][255];
-        getUsernameList(uData->db, 5 * (page - 1), lim, profiles);
-        for (int i = 0; i < 5; ++i) {
-            if(i<lim) gtk_label_set_text(profileLabels[i], profiles[i]);
-            else gtk_label_set_text(profileLabels[i], " ");
+        if(nbPages>0){
+            int page = (int) gtk_adjustment_get_value(scale);
+            int lim = ((page == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
+            char profiles [5][255];
+            getUsernameList(uData->db, 5 * (page - 1), lim, profiles);
+            for (int i = 0; i < 5; ++i) {
+                if(i<lim) gtk_label_set_text(profileLabels[i], profiles[i]);
+                else gtk_label_set_text(profileLabels[i], " ");
+            }
+            char pageText[255];
+            sprintf(pageText, "Page: %d / %d", page, nbPages);
+            gtk_label_set_text(pageLabel, pageText);
+        }else{
+            char pageText[255];
+            sprintf(pageText, "Page: 1 / 1");
+            gtk_label_set_text(pageLabel, pageText);
+            for (int i = 0; i < 5; ++i) gtk_label_set_text(profileLabels[i], " ");
         }
-        char pageText[255];
-        sprintf(pageText, "Page: %d / %d", page, nbPages);
-        gtk_label_set_text(pageLabel, pageText);
     }
 }
 
@@ -94,6 +101,7 @@ void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
 void onRegister(GtkButton *registerButton, gpointer data){
     windowData *uData = data;
     GtkLabel * error = GTK_LABEL(gtk_builder_get_object(uData->builder, "registerError"));
+    GtkAdjustment *scale = GTK_ADJUSTMENT(gtk_builder_get_object(uData->builder, "profilesScale"));
 
     char username[255];
     char password[255];
@@ -108,6 +116,8 @@ void onRegister(GtkButton *registerButton, gpointer data){
             int regStatus = registerAccount(uData->db, username, password);
             switch (regStatus) {
                 case REGISTER_SUCCESS:
+                    gtk_adjustment_set_upper(scale, (int)(getUserCount(uData->db) / 5 + (getUserCount(uData->db) % 5 > 0 ? 1 : 0)));
+                    onProfilesListScroll(scale, data);
                     gtk_entry_set_text(userInput, "");
                     gtk_entry_set_text(passwordInput, "");
                     gtk_label_set_text(error, "Profile successfully created");
@@ -200,17 +210,19 @@ void onFeedsScroll(GtkScrollbar * scroll, gpointer data){
         };
 
         int nbPages = feedCount / 5 + (feedCount % 5 > 0 ? 1 : 0);
-        gtk_adjustment_set_upper(scale, nbPages);
-        int page = (int) gtk_adjustment_get_value(scale);
-        int lim = ((page == nbPages && feedCount % 5 != 0) ? feedCount% 5 : 5);
-        char feeds [5][255];
-        getFeedsList(uData->db, 5 * (page - 1), lim, uData->session->id_user,feeds);
-        for (int i = 0; i < 5; ++i) {
-            if(i<lim) {
-                gtk_widget_show(feedStruct[i]);
-                gtk_label_set_text(feedLabels[i], feeds[i]);
-            }else gtk_widget_hide(feedStruct[i]);
-        }
+        if(nbPages>0){
+            gtk_adjustment_set_upper(scale, nbPages);
+            int page = (int) gtk_adjustment_get_value(scale);
+            int lim = ((page == nbPages && feedCount % 5 != 0) ? feedCount% 5 : 5);
+            char feeds [5][255];
+            getFeedsList(uData->db, 5 * (page - 1), lim, uData->session->id_user,feeds);
+            for (int i = 0; i < 5; ++i) {
+                if(i<lim) {
+                    gtk_widget_show(feedStruct[i]);
+                    gtk_label_set_text(feedLabels[i], feeds[i]);
+                }else gtk_widget_hide(feedStruct[i]);
+            }
+        }else for (int i = 0; i < 5; ++i) gtk_widget_hide(feedStruct[i]);
     }
 }
 
@@ -221,6 +233,8 @@ void onFeedsScroll(GtkScrollbar * scroll, gpointer data){
  */
 void onFeedAddConfirm(GtkButton * accept, gpointer data){
     windowData * uData = data;
+
+    GtkWidget * window = GTK_WIDGET(gtk_builder_get_object(uData->builder, "sessionWindow"));
 
     GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedAddError"));
 
@@ -237,6 +251,7 @@ void onFeedAddConfirm(GtkButton * accept, gpointer data){
                     gtk_label_set_text(errorLabel, "Error: Unexpected error while trying to access database");
                     break;
                 case REGISTER_SUCCESS:
+                    updateSessionWindow(window,data);
                     gtk_label_set_text(errorLabel, "Feed successfully created");
                     break;
                 default:
@@ -498,20 +513,43 @@ void callFeedDeleteDialog(GtkButton *selectedFeed, gpointer data){
     gtk_widget_show(GTK_WIDGET(feedDeleteDialog));
  }
 
-
+/**
+ * @usage delete profiles and closes session
+ * @param confirm -- confirm button
+ * @param data -- user data
+ */
 void onProfileDeleteConfirm(GtkButton *confirm, gpointer data){
     windowData *uData = data;
     GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
+
     deleteUser(uData->db, uData->session->id_user);
+    int feedCount = getUserCount(uData->db);
+    int nbPages = feedCount / 5 + (feedCount % 5 > 0 ? 1 : 0);
+
+    GtkAdjustment *scale = GTK_ADJUSTMENT(gtk_builder_get_object(uData->builder, "profilesScale"));
+
+    gtk_adjustment_set_upper(scale, nbPages);
+    gtk_adjustment_set_value(scale, 1);
+
     onLogout(confirm, data);
 }
 
+/**
+ * @usage cancels profile deletion and closes dialog
+ * @param confirm -- confirm button
+ * @param data -- user data
+ */
 void onProfileDeleteCancel(GtkButton *cancel, gpointer data){
     windowData *uData = data;
     GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
     gtk_widget_hide(GTK_WIDGET(dialog));
 }
 
+/**
+ * @usage show profile deletion dialog
+ * @param button -- delete user button
+ * @param data -- user data
+ */
 void callProfileDeleteDialog(GtkButton * button, gpointer data){
     windowData *uData = data;
     GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
@@ -561,16 +599,18 @@ void updateSessionWindow(GtkWidget * sessionWindow,gpointer data){
         };
 
         int nbPages = feedCount / 5 + (feedCount % 5 > 0 ? 1 : 0);
-        gtk_adjustment_set_upper(scale, nbPages);
-        int lim = ((1 == nbPages && feedCount % 5 != 0) ? feedCount% 5 : 5);
-        char feeds [5][255];
-        getFeedsList(uData->db, 0, lim, uData->session->id_user,feeds);
-        for (int i = 0; i < 5; ++i) {
-            if(i<lim) {
-                gtk_widget_show(feedStruct[i]);
-                gtk_label_set_text(feedLabels[i], feeds[i]);
-            }else gtk_widget_hide(feedStruct[i]);
-        }
+        if(nbPages>0){
+            gtk_adjustment_set_upper(scale, nbPages);
+            int lim = ((1 == nbPages && feedCount % 5 != 0) ? feedCount% 5 : 5);
+            char feeds [5][255];
+            getFeedsList(uData->db, 0, lim, uData->session->id_user,feeds);
+            for (int i = 0; i < 5; ++i) {
+                if(i<lim) {
+                    gtk_widget_show(feedStruct[i]);
+                    gtk_label_set_text(feedLabels[i], feeds[i]);
+                }else gtk_widget_hide(feedStruct[i]);
+            }
+        }else for (int i = 0; i < 5; ++i) gtk_widget_hide(feedStruct[i]);
         g_signal_connect(scale, "value-changed", G_CALLBACK(onFeedsScroll), data);
     }
 }
@@ -644,15 +684,23 @@ void initLoginWindow(GtkWidget *loginWindow, gpointer data){
     if (userCount == ACCESS_ERROR) gtk_label_set_text(listError, "Error: Could not access local database");
     else{
         int nbPages = userCount / 5 + (userCount % 5 > 0 ? 1 : 0);
-        gtk_adjustment_set_upper(scale, nbPages);
-        int lim = ((1 == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
-        char profiles [5][255];
-        getUsernameList(uData->db, 0, lim, profiles);
-        for (int i = 0; i < lim; ++i) gtk_label_set_text(profileLabels[i], profiles[i]);
-        char pageText[255];
-        sprintf(pageText, "Page: %d / %d", 1, nbPages);
-        gtk_label_set_text(pageLabel, pageText);
-        g_signal_connect(scale, "value-changed", G_CALLBACK(onProfilesListScroll), data);
+        if(nbPages>0){
+            gtk_adjustment_set_upper(scale, nbPages);
+            int lim = ((1 == nbPages && userCount % 5 != 0) ? userCount % 5 : 5);
+            char profiles [5][255];
+            getUsernameList(uData->db, 0, lim, profiles);
+            for (int i = 0; i < lim; ++i) gtk_label_set_text(profileLabels[i], profiles[i]);
+            char pageText[255];
+            sprintf(pageText, "Page: %d / %d", 1, nbPages);
+            gtk_label_set_text(pageLabel, pageText);
+            g_signal_connect(scale, "value-changed", G_CALLBACK(onProfilesListScroll), data);
+        }else{
+            gtk_adjustment_set_upper(scale, 1);
+            char pageText[255];
+            sprintf(pageText, "Page: 1 / 1");
+            gtk_label_set_text(pageLabel, pageText);
+            for (int i = 0; i < 5; ++i) gtk_label_set_text(profileLabels[i], " ");
+        }
     }
 
     g_signal_connect(registerButton, "clicked", G_CALLBACK(onRegister), data);
