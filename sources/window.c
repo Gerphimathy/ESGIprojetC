@@ -305,12 +305,14 @@ void onLogout(GtkButton *logout, gpointer data){
     GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
     GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
     GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
+    GtkDialog *profileDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
 
     gtk_widget_hide(settingsWindow);
     gtk_widget_hide(sessionWindow);
     gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
     gtk_widget_hide(GTK_WIDGET(feedAddDialog));
     gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
+    gtk_widget_hide(GTK_WIDGET(profileDeleteDialog));
     gtk_widget_show(loginWindow);
 }
 
@@ -455,7 +457,7 @@ void onFeedDeleteCancel(GtkButton * cancel, gpointer data){
  * @param selectedFeed -- the button presse, is compared against the list of button to find the feed
  * @param data -- user data
  */
- void callFeedDeleteDialog(GtkButton *selectedFeed, gpointer data){
+void callFeedDeleteDialog(GtkButton *selectedFeed, gpointer data){
     windowData * uData = data;
 
     ///Close feed renaming dialog
@@ -496,6 +498,25 @@ void onFeedDeleteCancel(GtkButton * cancel, gpointer data){
     gtk_widget_show(GTK_WIDGET(feedDeleteDialog));
  }
 
+
+void onProfileDeleteConfirm(GtkButton *confirm, gpointer data){
+    windowData *uData = data;
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
+    deleteUser(uData->db, uData->session->id_user);
+    onLogout(confirm, data);
+}
+
+void onProfileDeleteCancel(GtkButton *cancel, gpointer data){
+    windowData *uData = data;
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
+    gtk_widget_hide(GTK_WIDGET(dialog));
+}
+
+void callProfileDeleteDialog(GtkButton * button, gpointer data){
+    windowData *uData = data;
+    GtkDialog *dialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
+    gtk_widget_show(GTK_WIDGET(dialog));
+}
 
 /**
  * ##########################################
@@ -568,6 +589,8 @@ void initSessionWindow(GtkWidget *window, gpointer data){
                      "clicked", G_CALLBACK(callAddFeedDialog), data);
     g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "logoutButton")),
                      "clicked", G_CALLBACK(onLogout), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "deleteUser")),
+                     "clicked", G_CALLBACK(callProfileDeleteDialog), data);
 
     GtkButton * renameFeeds[] = {
             GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename1")),
@@ -752,6 +775,24 @@ void initFeedDeleteDialog(GtkDialog *dialog, gpointer data){
 }
 
 /**
+ * @usage initializes profile deletion dialog
+ * @param dialog -- deleting dialog
+ * @param data -- user data
+ */
+void initProfileDeleteDialog(GtkDialog *dialog, gpointer data){
+    windowData * uData = data;
+
+    GtkButton * accept = GTK_BUTTON(gtk_builder_get_object(uData->builder, "deleteProfileConfirm"));
+    GtkButton * cancel = GTK_BUTTON(gtk_builder_get_object(uData->builder, "deleteProfileCancel"));
+
+    g_signal_connect(accept, "clicked", G_CALLBACK(onProfileDeleteConfirm), data);
+    g_signal_connect(cancel, "clicked", G_CALLBACK(onProfileDeleteCancel), data);
+
+    g_signal_connect(dialog, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
+    g_signal_connect(dialog, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
+}
+
+/**
  * @param argv
  * @return status
  * @usage Creates the main client window then calls activate
@@ -769,6 +810,7 @@ void initWindows(char **argv, gpointer data){
     GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedAddDialog"));
     GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedRenameDialog"));
     GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedDeleteDialog"));
+    GtkDialog *profileDeleteDialog = GTK_DIALOG(gtk_builder_get_object(builder, "profileDeleteDialog"));
 
     ///Add builder to data for ease of use
     uData->builder = builder;
@@ -780,6 +822,7 @@ void initWindows(char **argv, gpointer data){
     initFeedAddDialog(feedAddDialog, data);
     initFeedRenameDialog(feedRenameDialog, data);
     initFeedDeleteDialog(feedDeleteDialog, data);
+    initProfileDeleteDialog(profileDeleteDialog, data);
 
     ///Connect signals
     gtk_builder_connect_signals(builder, data);

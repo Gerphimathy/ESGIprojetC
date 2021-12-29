@@ -66,4 +66,12 @@ void onFeedDeleteConfirm(GtkButton * confirm, gpointer data);
 
 void callFeedDeleteDialog(GtkButton *selectedFeed, gpointer data);
 
+void initProfileDeleteDialog(GtkDialog *dialog, gpointer data);
+
+void onProfileDeleteConfirm(GtkButton *confirm, gpointer data);
+
+void onProfileDeleteCancel(GtkButton *cancel, gpointer data);
+
+void callProfileDeleteDialog(GtkButton * button, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H
