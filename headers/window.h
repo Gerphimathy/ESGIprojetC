@@ -30,7 +30,7 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data);
 
 void initConfigWindow(GtkWidget *settingsWindow, gpointer data);
 
-void updateHasGui(GtkSwitch *configSwitch, gpointer data);
+void updateHasGui(GtkCheckButton *configSwitch, gpointer data);
 
 void updateConfigWindow(GtkButton *button, gpointer data);
 
@@ -82,6 +82,6 @@ void onPasswordCancel(GtkButton *cancel, gpointer data);
 
 void callPasswordDialog(GtkButton * button, gpointer data);
 
-void changeUserConfig(GtkSwitch* useDefault, gpointer data);
+void changeUserConfig(GtkCheckButton * configSwitch, gpointer data);
 
 #endif //CLIENTSRC_C_WINDOW_H

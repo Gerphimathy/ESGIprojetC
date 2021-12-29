@@ -15,8 +15,8 @@
  * @Usage GTK Windows: Actions, creation and activation
  */
 
-///Used to circumvent a bug with the state-set callback
-///Removing debugPointer would lead to a nullPointer exception when state-set is called back
+///Used to circumvent a bug with the toggled callback
+///Removing debugPointer would lead to a nullPointer exception when toggled is called back
 gpointer debugPointer;
 
 
@@ -79,14 +79,14 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
  * @param configSwitch
  * @param data
  */
-void changeUserConfig(GtkSwitch *configSwitch, gpointer data){
+void changeUserConfig(GtkCheckButton *configSwitch, gpointer data){
     ///If data has been wiped, correct it
-    ///Removing debugPointer would lead to a nullPointer exception when state-set is called back
+    ///Removing debugPointer would lead to a nullPointer exception when toggled is called back
     if(data != debugPointer){
         data = debugPointer;
     }
     windowData *uData = data;
-    gboolean status = gtk_switch_get_active(configSwitch);
+    gboolean status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configSwitch));
 
     if(status==TRUE) {
         uData->session->config = *uData->config;
@@ -105,19 +105,19 @@ void changeUserConfig(GtkSwitch *configSwitch, gpointer data){
  * @param configSwitch
  * @param data
  */
-void updateHasGui(GtkSwitch *configSwitch, gpointer data){
+void updateHasGui(GtkCheckButton *configSwitch, gpointer data){
     ///If data has been wiped, correct it
-    ///Removing debugPointer would lead to a nullPointer exception when state-set is called back
+    ///Removing debugPointer would lead to a nullPointer exception when toggled is called back
     if(data != debugPointer){
         data = debugPointer;
     }
     windowData *uData = data;
-    gboolean status = gtk_switch_get_active(configSwitch);
+    gboolean status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configSwitch));
     char *targetVal;
     fileConfig *targetConfig;
 
-    GtkSwitch *generalSwitch = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
-    GtkSwitch *userSwitch = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiUser"));
+    GtkCheckButton *generalSwitch = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
+    GtkCheckButton *userSwitch = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "hasGuiUser"));
 
     if(configSwitch == generalSwitch) {
         targetVal = uData->config->hasGui.value;
@@ -841,31 +841,31 @@ void initConfigWindow(GtkWidget *settingsWindow, gpointer data){
 
     ///Page switches
     GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
-    GtkSwitch *defaultSettings = GTK_SWITCH(gtk_builder_get_object(uData->builder, "useDefault"));
+    GtkCheckButton *defaultSettings = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "useDefault"));
 
     ///Config Switches
-    GtkSwitch *hasGuiGeneral = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
-    GtkSwitch *hasGuiUser = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiUser"));
+    GtkCheckButton *hasGuiGeneral = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "hasGuiGeneral"));
+    GtkCheckButton *hasGuiUser = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "hasGuiUser"));
 
     ///Window Signals
     g_signal_connect(settingsWindow, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
     g_signal_connect(settingsWindow, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
 
     ///Set switch states
-    if(strcmp(uData->config->path,uData->session->config.path)==0) gtk_switch_set_active(defaultSettings, TRUE);
-    else gtk_switch_set_active(defaultSettings, FALSE);
+    if(strcmp(uData->config->path,uData->session->config.path)==0) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(defaultSettings), TRUE);
+    else gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(defaultSettings), FALSE);
 
-    if(strcmp(uData->config->hasGui.value,"true")==0) gtk_switch_set_active(hasGuiGeneral, TRUE);
-    else gtk_switch_set_active(hasGuiGeneral, FALSE);
+    if(strcmp(uData->config->hasGui.value,"true")==0) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(hasGuiGeneral), TRUE);
+    else gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(hasGuiGeneral), FALSE);
 
 
-    ///Lib Bug: state-set callback frees the data pointer: Has to be countered using global pointer debug
+    ///Lib Bug: toggled callback frees the data pointer: Has to be countered using global pointer debug
 
     ///Callbacks
-    g_signal_connect(defaultSettings, "state-set", G_CALLBACK(changeUserConfig), data);
+    g_signal_connect(defaultSettings, "toggled", G_CALLBACK(changeUserConfig), data);
 
-    g_signal_connect(hasGuiGeneral, "state-set", G_CALLBACK(updateHasGui), data);
-    g_signal_connect(hasGuiUser, "state-set", G_CALLBACK(updateHasGui), data);
+    g_signal_connect(hasGuiGeneral, "toggled", G_CALLBACK(updateHasGui), data);
+    g_signal_connect(hasGuiUser, "toggled", G_CALLBACK(updateHasGui), data);
 
     if(uData->session->id_user ==LOGIN_ERR) gtk_widget_hide(configSwitch);
     else{
@@ -888,14 +888,14 @@ void updateConfigWindow(GtkButton *button, gpointer data){
 
     GtkWidget *configSwitch = GTK_WIDGET(gtk_builder_get_object(uData->builder, "configSwitch"));
 
-    GtkSwitch * hasGuiUser = GTK_SWITCH(gtk_builder_get_object(uData->builder, "hasGuiUser"));
-    GtkSwitch * useDefault = GTK_SWITCH(gtk_builder_get_object(uData->builder, "useDefault"));
+    GtkCheckButton * hasGuiUser = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "hasGuiUser"));
+    GtkCheckButton * useDefault = GTK_CHECK_BUTTON(gtk_builder_get_object(uData->builder, "useDefault"));
 
     ///Use default settings
     /**1**/ g_signal_handlers_disconnect_by_func(useDefault, G_CALLBACK(changeUserConfig), data);
-    /**2**/ if(strcmp(uData->config->path,uData->session->config.path)==0) gtk_switch_set_active(useDefault, TRUE);
-            else gtk_switch_set_active(useDefault, FALSE);
-    /**3**/ g_signal_connect(useDefault, "state-set", G_CALLBACK(changeUserConfig), data);
+    /**2**/ if(strcmp(uData->config->path,uData->session->config.path)==0) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(useDefault), TRUE);
+            else gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(useDefault), FALSE);
+    /**3**/ g_signal_connect(useDefault, "toggled", G_CALLBACK(changeUserConfig), data);
 
     if(uData->session->id_user == LOGIN_ERR) gtk_widget_hide(configSwitch);
     else{
@@ -906,9 +906,9 @@ void updateConfigWindow(GtkButton *button, gpointer data){
         }else{
             ///Has Gui User
             /**1**/ g_signal_handlers_disconnect_by_func(hasGuiUser, G_CALLBACK(updateHasGui), data);
-            /**2**/ if(strcmp(uData->session->config.hasGui.value,"true")==0) gtk_switch_set_active(hasGuiUser, TRUE);
-                    else gtk_switch_set_active(hasGuiUser, FALSE);
-            /**3**/ g_signal_connect(hasGuiUser, "state-set", G_CALLBACK(hasGuiUser), data);
+            /**2**/ if(strcmp(uData->session->config.hasGui.value,"true")==0) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(hasGuiUser), TRUE);
+                    else gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(hasGuiUser), FALSE);
+            /**3**/ g_signal_connect(hasGuiUser, "toggled", G_CALLBACK(hasGuiUser), data);
 
             gtk_widget_show(GTK_WIDGET(hasGuiUser));
             gtk_widget_show(GTK_WIDGET(useDefault));
