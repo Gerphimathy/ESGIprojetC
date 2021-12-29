@@ -74,4 +74,12 @@ void onProfileDeleteCancel(GtkButton *cancel, gpointer data);
 
 void callProfileDeleteDialog(GtkButton * button, gpointer data);
 
+void initPasswordDialog(GtkDialog * dialog, gpointer data);
+
+void onPasswordConfirm(GtkButton *confirm, gpointer data);
+
+void onPasswordCancel(GtkButton *cancel, gpointer data);
+
+void callPasswordDialog(GtkButton * button, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H

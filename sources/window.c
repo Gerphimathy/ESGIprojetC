@@ -321,11 +321,13 @@ void onLogout(GtkButton *logout, gpointer data){
     GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
     GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
     GtkDialog *profileDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "profileDeleteDialog"));
+    GtkDialog *passwordDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "passwordDialog"));
 
     gtk_widget_hide(settingsWindow);
     gtk_widget_hide(sessionWindow);
     gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
     gtk_widget_hide(GTK_WIDGET(feedAddDialog));
+    gtk_widget_hide(GTK_WIDGET(passwordDialog));
     gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
     gtk_widget_hide(GTK_WIDGET(profileDeleteDialog));
     gtk_widget_show(loginWindow);
@@ -345,7 +347,7 @@ void onFeedRenameConfirm(GtkButton * confirm, gpointer data){
 
     if(checkForSpeChars(gtk_entry_get_text(entry)) == CHECK_OK){
         if(strlen(gtk_entry_get_text(entry))<=255) {
-            int renameStatus = renameFeed(uData->db, gtk_entry_get_text(entry), uData->feedId, uData->session->id_user);// createFeed(uData->db, gtk_entry_get_text(entry), uData->session->id_user);
+            int renameStatus = renameFeed(uData->db, gtk_entry_get_text(entry), uData->feedId, uData->session->id_user);
             switch (renameStatus) {
                 case REGISTER_DUPLICATE:
                     gtk_label_set_text(errorLabel, "Error: A feed by that name already exists");
@@ -557,6 +559,73 @@ void callProfileDeleteDialog(GtkButton * button, gpointer data){
 }
 
 /**
+ * @usage treats password change
+ * @param confirm -- confirm button
+ * @param data --user data
+ */
+void onPasswordConfirm(GtkButton *confirm, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "passwordError"));
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "passwordEntry"));
+
+    if(checkForSpeChars(gtk_entry_get_text(entry)) == CHECK_OK){
+        if(strlen(gtk_entry_get_text(entry))<=255) {
+            int passStatus = updateUserPassword(uData->db, uData->session->id_user, gtk_entry_get_text(entry));
+            switch (passStatus) {
+                case CHANGE_NO:
+                    gtk_label_set_text(errorLabel, "Error: Unexpected error while trying to access database");
+                    break;
+                case CHANGE_OK:
+                    gtk_label_set_text(errorLabel, "Password successfully changed");
+                    break;
+                default:
+                    break;
+            }
+        }else gtk_label_set_text(errorLabel, "Error: Max length is 255 characters");
+    }else gtk_label_set_text(errorLabel, "Error: Do not use special characters '\"\\%%/`");
+}
+
+/**
+ * @usage treats closing the password change dialog
+ * @param cancel -- cancel button
+ * @param data --user data
+ */
+void onPasswordCancel(GtkButton *cancel, gpointer data){
+    windowData * uData = data;
+
+    GtkDialog * passwordDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "passwordDialog"));
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "passwordError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "passwordEntry"));
+    gtk_entry_set_text(entry,"");
+
+    gtk_widget_hide(GTK_WIDGET(passwordDialog));
+}
+
+/**
+ * @usage calls the password change dialog
+ * @param button -- change password button
+ * @param data -- user data
+ */
+void callPasswordDialog(GtkButton * button, gpointer data){
+    windowData * uData = data;
+
+    GtkDialog * passwordDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "passwordDialog"));
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "passwordError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "passwordEntry"));
+    gtk_entry_set_text(entry,"");
+
+    gtk_widget_show(GTK_WIDGET(passwordDialog));
+}
+
+/**
  * ##########################################
  * #                                        #
  * #        Init&Update functions           #
@@ -631,6 +700,8 @@ void initSessionWindow(GtkWidget *window, gpointer data){
                      "clicked", G_CALLBACK(onLogout), data);
     g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "deleteUser")),
                      "clicked", G_CALLBACK(callProfileDeleteDialog), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "changePassword")),
+                     "clicked", G_CALLBACK(callPasswordDialog), data);
 
     GtkButton * renameFeeds[] = {
             GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename1")),
@@ -841,6 +912,30 @@ void initProfileDeleteDialog(GtkDialog *dialog, gpointer data){
 }
 
 /**
+ * @usage initializes password change dialog callbacks
+ * @param dialog -- password change dialog
+ * @param data -- user data
+ */
+void initPasswordDialog(GtkDialog * dialog, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "passwordError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "passwordEntry"));
+    gtk_entry_set_text(entry,"");
+
+    GtkButton * accept = GTK_BUTTON(gtk_builder_get_object(uData->builder, "passwordConfirm"));
+    GtkButton * cancel = GTK_BUTTON(gtk_builder_get_object(uData->builder, "passwordCancel"));
+
+    g_signal_connect(accept, "clicked", G_CALLBACK(onPasswordConfirm), data);
+    g_signal_connect(cancel, "clicked", G_CALLBACK(onPasswordCancel), data);
+
+    g_signal_connect(dialog, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
+    g_signal_connect(dialog, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
+}
+
+/**
  * @param argv
  * @return status
  * @usage Creates the main client window then calls activate
@@ -859,6 +954,7 @@ void initWindows(char **argv, gpointer data){
     GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedRenameDialog"));
     GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedDeleteDialog"));
     GtkDialog *profileDeleteDialog = GTK_DIALOG(gtk_builder_get_object(builder, "profileDeleteDialog"));
+    GtkDialog *passwordDialog = GTK_DIALOG(gtk_builder_get_object(builder, "passwordDialog"));
 
     ///Add builder to data for ease of use
     uData->builder = builder;
@@ -871,6 +967,7 @@ void initWindows(char **argv, gpointer data){
     initFeedRenameDialog(feedRenameDialog, data);
     initFeedDeleteDialog(feedDeleteDialog, data);
     initProfileDeleteDialog(profileDeleteDialog, data);
+    initPasswordDialog(passwordDialog, data);
 
     ///Connect signals
     gtk_builder_connect_signals(builder, data);
