@@ -89,6 +89,13 @@
     <property name="can-focus">False</property>
     <property name="pixbuf">icons\bin.png</property>
   </object>
+  <object class="GtkAdjustment" id="feedsScale">
+    <property name="lower">1</property>
+    <property name="upper">100</property>
+    <property name="value">1</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
   <object class="GtkImage" id="logout">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
@@ -549,6 +556,11 @@ Do not use '"\%%/`</property>
     <property name="can-focus">False</property>
     <property name="pixbuf">icons\settings.png</property>
   </object>
+  <object class="GtkImage" id="sessionLock">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">icons\lock.png</property>
+  </object>
   <object class="GtkWindow" id="sessionWindow">
     <property name="width-request">800</property>
     <property name="height-request">700</property>
@@ -575,10 +587,11 @@ Do not use '"\%%/`</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkButton" id="logou">
+                      <object class="GtkButton" id="logoutButton">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">True</property>
+                        <property name="margin-left">25</property>
                         <property name="margin-start">25</property>
                         <property name="image">logout</property>
                       </object>
@@ -593,6 +606,7 @@ Do not use '"\%%/`</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">True</property>
+                        <property name="margin-left">25</property>
                         <property name="margin-start">25</property>
                         <property name="image">sessionCogwheel</property>
                       </object>
@@ -617,7 +631,7 @@ Do not use '"\%%/`</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton">
+                      <object class="GtkButton" id="changePassword">
                         <property name="name">feedRename1</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
@@ -633,7 +647,7 @@ Do not use '"\%%/`</property>
                     </child>
                   </object>
                   <packing>
-                    <property name="x">721</property>
+                    <property name="x">714</property>
                     <property name="y">19</property>
                   </packing>
                 </child>
@@ -1025,11 +1039,12 @@ Do not use '"\%%/`</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkScrollbar">
+                  <object class="GtkScrollbar" id="profilesScrollBar">
                     <property name="height-request">44</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="orientation">vertical</property>
+                    <property name="adjustment">feedsScale</property>
                   </object>
                   <packing>
                     <property name="left-attach">1</property>
@@ -1076,11 +1091,6 @@ Do not use '"\%%/`</property>
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="sessionLock">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
-    <property name="pixbuf">icons\lock.png</property>
   </object>
   <object class="GtkWindow" id="settingsWindow">
     <property name="can-focus">False</property>

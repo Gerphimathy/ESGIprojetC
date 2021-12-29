@@ -39,4 +39,6 @@ void updateSessionWindow(GtkWidget * sessionWindow,gpointer data);
 
 void initSessionWindow(GtkWidget *window, gpointer data);
 
+void onFeedsScroll(GtkScrollbar * scroll, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H

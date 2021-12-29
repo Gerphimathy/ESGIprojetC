@@ -18,6 +18,15 @@
 ///Removing debugPointer would lead to a nullPointer exception when state-set is called back
 gpointer debugPointer;
 
+
+/**
+ * ##########################################
+ * #                                        #
+ * #            Callback functions          #
+ * #                                        #
+ * ##########################################
+ */
+
 /**
  * @usage Called when scrolling down the profiles list to update the list
  * @param scale -- scrollbar scale
@@ -57,6 +66,11 @@ void onProfilesListScroll(GtkAdjustment *scale, gpointer data){
     }
 }
 
+/**
+ * @usage treats hasGui button press in the settings window
+ * @param configSwitch
+ * @param data
+ */
 void updateHasGuiGeneral(GtkSwitch *configSwitch, gpointer data){
     ///If data has been wiped, correct it
     ///Removing debugPointer would lead to a nullPointer exception when state-set is called back
@@ -141,15 +155,120 @@ void onLogin(GtkButton *registerButton, gpointer data){
     }else gtk_label_set_text(error, "Error: Do not use special characters");
 }
 
+/**
+ * @usage treat scrolling through feeds on the session window
+ * @param scroll
+ * @param data
+ */
+void onFeedsScroll(GtkScrollbar * scroll, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * feedsHeader = GTK_LABEL(gtk_builder_get_object(uData->builder, "feeds"));
+    GtkAdjustment * scale = GTK_ADJUSTMENT(gtk_builder_get_object(uData->builder, "feedsScale"));
+    int feedCount = getFeedCount(uData->db, uData->session->id_user);
+
+    if (feedCount == ACCESS_ERROR) gtk_label_set_text(feedsHeader, "Error: Could not access local database");
+    else{
+
+        GtkLabel * feedLabels[] = {
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName1")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName2")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName3")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName4")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName5")),
+        };
+
+        GtkWidget * feedStruct[] = {
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions1")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions2")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions3")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions4")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions5")),
+        };
+
+        int nbPages = feedCount / 5 + (feedCount % 5 > 0 ? 1 : 0);
+        gtk_adjustment_set_upper(scale, nbPages);
+        int page = (int) gtk_adjustment_get_value(scale);
+        int lim = ((page == nbPages && feedCount % 5 != 0) ? feedCount% 5 : 5);
+        char feeds [5][255];
+        getFeedsList(uData->db, 5 * (page - 1), lim, uData->session->id_user,feeds);
+        for (int i = 0; i < 5; ++i) {
+            if(i<lim) {
+                gtk_widget_show(feedStruct[i]);
+                gtk_label_set_text(feedLabels[i], feeds[i]);
+            }else gtk_widget_hide(feedStruct[i]);
+        }
+    }
+}
+
+
+/**
+ * ##########################################
+ * #                                        #
+ * #        Init&Update functions           #
+ * #                                        #
+ * ##########################################
+ */
+
+
+/**
+ * @usage update session window with user session data when accessed afterlogin
+ * @param sessionWindow
+ * @param data
+ */
 void updateSessionWindow(GtkWidget * sessionWindow,gpointer data){
     windowData *uData = data;
     gtk_widget_show(sessionWindow);
     gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(uData->builder, "loginWindow")));
+
+    GtkLabel * feedsHeader = GTK_LABEL(gtk_builder_get_object(uData->builder, "feeds"));
+    GtkAdjustment * scale = GTK_ADJUSTMENT(gtk_builder_get_object(uData->builder, "feedsScale"));
+    int feedCount = getFeedCount(uData->db, uData->session->id_user);
+
+    if (feedCount == ACCESS_ERROR) gtk_label_set_text(feedsHeader, "Error: Could not access local database");
+    else{
+
+        GtkLabel * feedLabels[] = {
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName1")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName2")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName3")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName4")),
+                GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName5")),
+        };
+
+        GtkWidget * feedStruct[] = {
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions1")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions2")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions3")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions4")),
+                GTK_WIDGET(gtk_builder_get_object(uData->builder, "feedOptions5")),
+        };
+
+        int nbPages = feedCount / 5 + (feedCount % 5 > 0 ? 1 : 0);
+        gtk_adjustment_set_upper(scale, nbPages);
+        int lim = ((1 == nbPages && feedCount % 5 != 0) ? feedCount% 5 : 5);
+        char feeds [5][255];
+        getFeedsList(uData->db, 0, lim, uData->session->id_user,feeds);
+        for (int i = 0; i < 5; ++i) {
+            if(i<lim) {
+                gtk_widget_show(feedStruct[i]);
+                gtk_label_set_text(feedLabels[i], feeds[i]);
+            }else gtk_widget_hide(feedStruct[i]);
+        }
+        g_signal_connect(scale, "value-changed", G_CALLBACK(onFeedsScroll), data);
+    }
 }
 
+/**
+ * @usage initialises session window callbacks and elements
+ * @param window
+ * @param data
+ */
 void initSessionWindow(GtkWidget *window, gpointer data){
     windowData *uData = data;
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder,"sessionOptions")),
+                     "clicked", G_CALLBACK(updateConfigWindow), data);
 }
 
 /**
@@ -228,7 +347,6 @@ void initConfigWindow(GtkWidget *settingsWindow, gpointer data){
     updateConfigWindow(GTK_BUTTON(gtk_builder_get_object(uData->builder,"loginSettings")), data);
 }
 
-
 /**
  * @usage update config window when it is called
  * @param button -- the button pressed
@@ -271,9 +389,17 @@ void initWindows(char **argv, gpointer data){
 
     gtk_builder_connect_signals(builder, data);
 
-    gtk_widget_hide(sessionWindow);
-    gtk_widget_hide(settingsWindow);
-    gtk_widget_show(loginWindow);
+    if(uData->session->id_user != LOGIN_ERR){
+        gtk_widget_hide(settingsWindow);
+        gtk_widget_hide(loginWindow);
+
+        updateSessionWindow(sessionWindow, data);
+    }else{
+        gtk_widget_hide(sessionWindow);
+        gtk_widget_hide(settingsWindow);
+        gtk_widget_show(loginWindow);
+    }
+
 
 
     gtk_main();
