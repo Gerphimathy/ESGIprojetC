@@ -9,6 +9,7 @@
 #include "../headers/window.h"
 #include "../headers/macros.h"
 #include "../headers/config.h"
+#include "../headers/feed.h"
 
 /**
  * @Usage GTK Windows: Actions, creation and activation
@@ -100,7 +101,7 @@ void onRegister(GtkButton *registerButton, gpointer data){
     GtkEntry * userInput = GTK_ENTRY(gtk_builder_get_object(uData->builder, "registerUsername"));
     GtkEntry * passwordInput = GTK_ENTRY(gtk_builder_get_object(uData->builder, "registerPassword"));
 
-    if(checkForSpeChars(gtk_entry_get_text(userInput)) == CHECK_OK||checkForSpeChars(gtk_entry_get_text(passwordInput))==CHECK_OK){
+    if(checkForSpeChars(gtk_entry_get_text(userInput)) == CHECK_OK&&checkForSpeChars(gtk_entry_get_text(passwordInput))==CHECK_OK){
         if(strlen(gtk_entry_get_text(userInput))<=255&&strlen(gtk_entry_get_text(passwordInput))<=255){
             strcpy(username, gtk_entry_get_text(userInput));
             strcpy(password, gtk_entry_get_text(passwordInput));
@@ -201,6 +202,74 @@ void onFeedsScroll(GtkScrollbar * scroll, gpointer data){
     }
 }
 
+/**
+ * @usage called when confirming to add a new feed, treats adding the feed and returning errors
+ * @param accept -- button pressed
+ * @param data - userData
+ */
+void onFeedAddConfirm(GtkButton * accept, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedAddError"));
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedAddEntry"));
+
+    if(checkForSpeChars(gtk_entry_get_text(entry)) == CHECK_OK){
+        if(strlen(gtk_entry_get_text(entry))<=255) {
+            int addStatus = createFeed(uData->db, gtk_entry_get_text(entry), uData->session->id_user);
+            switch (addStatus) {
+                case REGISTER_DUPLICATE:
+                    gtk_label_set_text(errorLabel, "Error: A feed by that name already exists");
+                    break;
+                case REGISTER_ERR:
+                    gtk_label_set_text(errorLabel, "Error: Unexpected error while trying to access database");
+                    break;
+                case REGISTER_SUCCESS:
+                    gtk_label_set_text(errorLabel, "Feed successfully created");
+                    break;
+                default:
+                    break;
+            }
+        }else gtk_label_set_text(errorLabel, "Error: Name max length is 255 characters");
+    }else gtk_label_set_text(errorLabel, "Error: Do not use special characters '\"\\%%/`");
+}
+
+/**
+ * @usage called when canceling adding a new feed, treats putting everything to nil when quitting
+ * @param cancel -- cancel button
+ * @param data -- user data
+ */
+void onFeedAddCancel(GtkButton * cancel, gpointer data){
+    windowData * uData = data;
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedAddError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedAddEntry"));
+    gtk_entry_set_text(entry,"");
+
+    GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedAddDialog));
+}
+
+/**
+ * @usage called when clicking on add new feed, calls the add feed dialog and puts every value to nil
+ * @param button -- add feed button
+ * @param data -- user data
+ */
+void callAddFeedDialog(GtkButton * button, gpointer data){
+    windowData * uData = data;
+    GtkDialog * addFeedDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedAddError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedAddEntry"));
+    gtk_entry_set_text(entry,"");
+
+    GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
+
+    gtk_widget_show(GTK_WIDGET(addFeedDialog));
+}
 
 /**
  * ##########################################
@@ -269,6 +338,7 @@ void initSessionWindow(GtkWidget *window, gpointer data){
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), data);
     g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder,"sessionOptions")),
                      "clicked", G_CALLBACK(updateConfigWindow), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "addNewFeed")), "clicked", G_CALLBACK(callAddFeedDialog), data);
 }
 
 /**
@@ -366,6 +436,30 @@ void updateConfigWindow(GtkButton *button, gpointer data){
 }
 
 /**
+ * @usage initialises the callbacks on the add feed dialog window
+ * @param dialog -- dialog window
+ * @param data -- userData
+ */
+void initFeedAddDialog(GtkDialog *dialog, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * errorLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "feedAddError"));
+    gtk_label_set_text(errorLabel, " ");
+
+    GtkEntry * entry = GTK_ENTRY(gtk_builder_get_object(uData->builder, "feedAddEntry"));
+    gtk_entry_set_text(entry,"");
+
+    GtkButton * accept = GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedAddConfirm"));
+    GtkButton * cancel = GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedAddCancel"));
+
+    g_signal_connect(accept, "clicked", G_CALLBACK(onFeedAddConfirm), data);
+    g_signal_connect(cancel, "clicked", G_CALLBACK(onFeedAddCancel), data);
+
+    g_signal_connect(dialog, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
+    g_signal_connect(dialog, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
+}
+
+/**
  * @param argv
  * @return status
  * @usage Creates the main client window then calls activate
@@ -374,21 +468,27 @@ void initWindows(char **argv, gpointer data){
     gtk_init(0, &argv);
     windowData *uData = data;
     debugPointer = data;
-
     GtkBuilder *builder = gtk_builder_new_from_file("layouts/clientMain.glade");
+
+    ///Get windows from builder
     GtkWidget *loginWindow = GTK_WIDGET(gtk_builder_get_object(builder, "loginWindow"));
     GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(builder, "settingsWindow"));
     GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(builder, "sessionWindow"));
+    GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedAddDialog"));
 
+    ///Add builder to data for ease of use
     uData->builder = builder;
 
-    ///Init login window
+    ///Init windows
     initLoginWindow(loginWindow, data);
     initConfigWindow(settingsWindow, data);
     initSessionWindow(sessionWindow, data);
+    initFeedAddDialog(feedAddDialog, data);
 
+    ///Connect signals
     gtk_builder_connect_signals(builder, data);
 
+    ///Init from login or session window depending on fast login/register status
     if(uData->session->id_user != LOGIN_ERR){
         gtk_widget_hide(settingsWindow);
         gtk_widget_hide(loginWindow);
@@ -399,8 +499,6 @@ void initWindows(char **argv, gpointer data){
         gtk_widget_hide(settingsWindow);
         gtk_widget_show(loginWindow);
     }
-
-
 
     gtk_main();
 }

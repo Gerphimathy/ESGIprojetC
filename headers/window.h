@@ -41,4 +41,10 @@ void initSessionWindow(GtkWidget *window, gpointer data);
 
 void onFeedsScroll(GtkScrollbar * scroll, gpointer data);
 
+void onFeedAddConfirm(GtkButton * accept, gpointer data);
+
+void onFeedAddCancel(GtkButton * cancel, gpointer data);
+
+void callAddFeedDialog(GtkButton * button, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H
