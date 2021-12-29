@@ -58,4 +58,12 @@ void onFeedRenameCancel(GtkButton * cancel, gpointer data);
 
 void callFeedRenameDialog(GtkButton * selectedFeed, gpointer data);
 
+void initFeedDeleteDialog(GtkDialog *dialog, gpointer data);
+
+void onFeedDeleteCancel(GtkButton * cancel, gpointer data);
+
+void onFeedDeleteConfirm(GtkButton * confirm, gpointer data);
+
+void callFeedDeleteDialog(GtkButton *selectedFeed, gpointer data);
+
 #endif //CLIENTSRC_C_WINDOW_H

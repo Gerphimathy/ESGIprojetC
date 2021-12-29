@@ -168,8 +168,16 @@ void onFeedsScroll(GtkScrollbar * scroll, gpointer data){
     GtkDialog * feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
     gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
 
+    GtkLabel * deleteInfoLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "deleteFeedLabel"));
+    gtk_label_set_text(deleteInfoLabel, "You are about to delete the following feed:\n\n%s\n\nProceed ?");
+
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
+
+    ///Get scale and header
     GtkLabel * feedsHeader = GTK_LABEL(gtk_builder_get_object(uData->builder, "feeds"));
     GtkAdjustment * scale = GTK_ADJUSTMENT(gtk_builder_get_object(uData->builder, "feedsScale"));
+
     int feedCount = getFeedCount(uData->db, uData->session->id_user);
 
     if (feedCount == ACCESS_ERROR) gtk_label_set_text(feedsHeader, "Error: Could not access local database");
@@ -285,14 +293,22 @@ void onLogout(GtkButton *logout, gpointer data){
     uData->session->id_user = LOGIN_ERR;
     uData->selectedFeed = NULL;
 
+    ///Reset info labels
+    GtkLabel * deleteInfoLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "deleteFeedLabel"));
+    gtk_label_set_text(deleteInfoLabel, "You are about to delete the following feed:\n\n%s\n\nProceed ?");
+
+
+    ///Hide windows
     GtkWidget *loginWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "loginWindow"));
     GtkWidget *settingsWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "settingsWindow"));
     GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "sessionWindow"));
     GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedAddDialog"));
     GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
 
     gtk_widget_hide(settingsWindow);
     gtk_widget_hide(sessionWindow);
+    gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
     gtk_widget_hide(GTK_WIDGET(feedAddDialog));
     gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
     gtk_widget_show(loginWindow);
@@ -351,13 +367,21 @@ void onFeedRenameCancel(GtkButton * cancel, gpointer data){
 }
 
 /**
- *
- * @param selectedFeed
- * @param data
+ * @usage makes the feed rename dialog window visible and prepares it for usage
+ * @param selectedFeed -- the button presse, is compared against the list of button to find the feed
+ * @param data -- user data
  */
 void callFeedRenameDialog(GtkButton * selectedFeed, gpointer data){
     windowData * uData = data;
 
+    ///Close feed deletion dialog
+    GtkLabel * deleteInfoLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "deleteFeedLabel"));
+    gtk_label_set_text(deleteInfoLabel, "You are about to delete the following feed:\n\n%s\n\nProceed ?");
+
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
+
+    ///Get feed buttons and names
     GtkButton * renameFeedButtons[] = {
             GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename1")),
             GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename2")),
@@ -390,6 +414,88 @@ void callFeedRenameDialog(GtkButton * selectedFeed, gpointer data){
 
     gtk_widget_show(GTK_WIDGET(feedRenameDialog));
 }
+
+/**
+ * @usage called when confirming deletion of a feed, deletes the feed and closes the window
+ * @param cancel -- pressed button
+ * @param data -- user data
+ */
+void onFeedDeleteConfirm(GtkButton * confirm, gpointer data){
+    windowData * uData = data;
+    deleteFeed(uData->db, uData->feedId);
+
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
+
+    uData->feedId = -1;
+
+    GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(uData->builder, "sessionWindow"));
+    updateSessionWindow(sessionWindow, data);
+}
+
+/**
+ * @usage called when canceling deletion of a feed, sets selected feed to 0 and hides the window
+ * @param cancel -- pressed button
+ * @param data -- user data
+ */
+void onFeedDeleteCancel(GtkButton * cancel, gpointer data){
+    windowData * uData = data;
+
+    uData->feedId = -1;
+
+    GtkLabel * infoLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "deleteFeedLabel"));
+    gtk_label_set_text(infoLabel, "You are about to delete the following feed:\n\n%s\n\nProceed ?");
+
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedDeleteDialog));
+}
+
+/**
+ * @usage makes the feed deletion dialog window visible and prepares it for usage
+ * @param selectedFeed -- the button presse, is compared against the list of button to find the feed
+ * @param data -- user data
+ */
+ void callFeedDeleteDialog(GtkButton *selectedFeed, gpointer data){
+    windowData * uData = data;
+
+    ///Close feed renaming dialog
+    GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedRenameDialog"));
+    gtk_widget_hide(GTK_WIDGET(feedRenameDialog));
+
+    ///Get feed buttons and names
+    GtkButton * deleteFeedButtons[] = {
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete1")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete2")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete3")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete4")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete5")),
+    };
+
+    GtkLabel * feedNames[] = {
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName1")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName2")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName3")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName4")),
+            GTK_LABEL(gtk_builder_get_object(uData->builder, "feedName5")),
+    };
+
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(uData->builder, "feedDeleteDialog"));
+
+    GtkLabel * infoLabel = GTK_LABEL(gtk_builder_get_object(uData->builder,"deleteFeedLabel"));
+
+    uData->feedId = -1;
+    for(int i = 0; i<5; i++){
+        if (deleteFeedButtons[i] == selectedFeed){
+            uData->feedId = getFeedId(uData->db, gtk_label_get_text(feedNames[i]), uData->session->id_user);
+            char tmpBuffer[1024];
+            sprintf(tmpBuffer, "You are about to delete the following feed:\n\n%s\n\nProceed ?", gtk_label_get_text(feedNames[i]));
+            gtk_label_set_text(infoLabel, tmpBuffer);
+        }
+    }
+
+    gtk_widget_show(GTK_WIDGET(feedDeleteDialog));
+ }
+
 
 /**
  * ##########################################
@@ -471,6 +577,15 @@ void initSessionWindow(GtkWidget *window, gpointer data){
             GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename5")),
     };
     for (int i = 0; i < 5; ++i) g_signal_connect(renameFeeds[i], "clicked", G_CALLBACK(callFeedRenameDialog), data);
+
+    GtkButton * deleteFeeds[] = {
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete1")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete2")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete3")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete4")),
+            GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedDelete5")),
+    };
+    for (int i = 0; i < 5; ++i) g_signal_connect(deleteFeeds[i], "clicked", G_CALLBACK(callFeedDeleteDialog), data);
 
 }
 
@@ -617,6 +732,26 @@ void initFeedRenameDialog(GtkDialog *dialog, gpointer data){
 }
 
 /**
+ * @usage initializes feed deletion dialog
+ * @param dialog -- deleting dialog
+ * @param data -- user data
+ */
+void initFeedDeleteDialog(GtkDialog *dialog, gpointer data){
+    windowData * uData = data;
+
+    GtkLabel * infoLabel = GTK_LABEL(gtk_builder_get_object(uData->builder, "deleteFeedLabel"));
+
+    GtkButton * accept = GTK_BUTTON(gtk_builder_get_object(uData->builder, "deleteFeedConfirm"));
+    GtkButton * cancel = GTK_BUTTON(gtk_builder_get_object(uData->builder, "deleteFeedCancel"));
+
+    g_signal_connect(accept, "clicked", G_CALLBACK(onFeedDeleteConfirm), data);
+    g_signal_connect(cancel, "clicked", G_CALLBACK(onFeedDeleteCancel), data);
+
+    g_signal_connect(dialog, "destroy", G_CALLBACK(gtk_widget_hide_on_delete), data);
+    g_signal_connect(dialog, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), data);
+}
+
+/**
  * @param argv
  * @return status
  * @usage Creates the main client window then calls activate
@@ -633,6 +768,7 @@ void initWindows(char **argv, gpointer data){
     GtkWidget *sessionWindow = GTK_WIDGET(gtk_builder_get_object(builder, "sessionWindow"));
     GtkDialog *feedAddDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedAddDialog"));
     GtkDialog *feedRenameDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedRenameDialog"));
+    GtkDialog *feedDeleteDialog = GTK_DIALOG(gtk_builder_get_object(builder, "feedDeleteDialog"));
 
     ///Add builder to data for ease of use
     uData->builder = builder;
@@ -643,6 +779,7 @@ void initWindows(char **argv, gpointer data){
     initSessionWindow(sessionWindow, data);
     initFeedAddDialog(feedAddDialog, data);
     initFeedRenameDialog(feedRenameDialog, data);
+    initFeedDeleteDialog(feedDeleteDialog, data);
 
     ///Connect signals
     gtk_builder_connect_signals(builder, data);
