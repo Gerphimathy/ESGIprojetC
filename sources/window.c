@@ -382,7 +382,9 @@ void onLogout(GtkButton *logout, gpointer data){
     gtk_stack_set_visible_child(confStack, generalConfig);
 
     ///Re init settings
-    gtk_widget_show(loginWindow);
+    // TODO: De activated because of switch bug:
+    //  gtk_widget_show(loginWindow);
+    gtk_main_quit();
 }
 
 /**
@@ -909,6 +911,9 @@ void updateConfigWindow(GtkButton *button, gpointer data){
             /**2**/ if(strcmp(uData->session->config.hasGui.value,"true")==0) gtk_switch_set_active(hasGuiUser, TRUE);
                     else gtk_switch_set_active(hasGuiUser, FALSE);
             /**3**/ g_signal_connect(hasGuiUser, "state-set", G_CALLBACK(hasGuiUser), data);
+
+            //TODO: gtk_switch_get_state here ^ will always crash when called a second time
+            //TODO: Temp fix is to force quit once disconnecting
 
             gtk_widget_show(GTK_WIDGET(hasGuiUser));
             gtk_widget_show(GTK_WIDGET(useDefault));
