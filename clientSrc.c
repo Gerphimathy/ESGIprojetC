@@ -8,6 +8,7 @@
 #include <json-c/json.h>
 #include <openssl/sha.h>
 #include <unistd.h>
+#include <curl/curl.h>
 
 #include "headers/macros.h"
 #include "headers/window.h"
@@ -120,6 +121,9 @@ int main(int argc, char **argv) {
      * 3 - Default Configs
      */
 
+    ///Init curl
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
     ///Parse Default Config File
     strcpy(masterConfig.path, "config/main.conf");
     parseConfigFile(&masterConfig);
@@ -184,5 +188,6 @@ int main(int argc, char **argv) {
 
     ///Finish
     sqlite3_close(localDatabase.databaseHandle);
+    curl_global_cleanup();
     return 0;
 }

@@ -12,7 +12,7 @@ add_executable(ProjetC clientSrc.c headers/macros.h
         sources/jsonParse.c headers/jsonParse.h
         sources/login.c headers/login.h
         sources/terminal.c headers/terminal.h
-        sources/feed.c headers/feed.h)
+        sources/feed.c headers/feed.h sources/ytapi.c headers/ytapi.h)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -50,3 +50,10 @@ include_directories(${OpenSSL_INCLUDE_DIRS})
 link_directories(${OpenSSL_LIBRARY_DIRS})
 add_definitions(${OpenSSL_CFLAGS_OTHER})
 target_link_libraries(ProjetC ${OpenSSL_LIBRARIES})
+
+# Add openssl libs to project
+find_package(CURL)
+include_directories(${CURL_INCLUDE_DIRS})
+link_directories(${CURL_LIBRARY_DIRS})
+add_definitions(${CURL_CFLAGS_OTHER})
+target_link_libraries(ProjetC ${CURL_LIBRARIES})
