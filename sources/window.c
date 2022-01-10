@@ -10,6 +10,7 @@
 #include "../headers/macros.h"
 #include "../headers/config.h"
 #include "../headers/feed.h"
+#include "../headers/ytapi.h"
 
 /**
  * @Usage GTK Windows: Actions, creation and activation
@@ -679,6 +680,12 @@ void callPasswordDialog(GtkButton * button, gpointer data){
     gtk_widget_show(GTK_WIDGET(passwordDialog));
 }
 
+void onYoutubeLogin(GtkButton * button, gpointer data){
+    windowData * uData = data;
+    uData->session->auth = get_token();
+    updateUserAuth(uData->db,uData->session->id_user, uData->session->auth.refreshToken);
+}
+
 /**
  * ##########################################
  * #                                        #
@@ -756,6 +763,8 @@ void initSessionWindow(GtkWidget *window, gpointer data){
                      "clicked", G_CALLBACK(callProfileDeleteDialog), data);
     g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "changePassword")),
                      "clicked", G_CALLBACK(callPasswordDialog), data);
+    g_signal_connect(GTK_BUTTON(gtk_builder_get_object(uData->builder, "youtubeLogin")),
+                     "clicked", G_CALLBACK(onYoutubeLogin), data);
 
     GtkButton * renameFeeds[] = {
             GTK_BUTTON(gtk_builder_get_object(uData->builder, "feedRename1")),

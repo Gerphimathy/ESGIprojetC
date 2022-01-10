@@ -2,6 +2,7 @@
 #define CLIENTSRC_C_LOGIN_H
 
 #include "config.h"
+#include "ytapi.h"
 
 
 /**
@@ -15,8 +16,7 @@
 typedef struct session{
     int id_user;
     char username[255];
-    char yt_token[255];
-    char twt_token[255];
+    struct auth auth;
     fileConfig config;
 }session;
 

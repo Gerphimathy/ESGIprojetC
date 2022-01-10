@@ -28,6 +28,8 @@ void updateUserConf(database * db, int id, char path[255]);
 
 int updateUserPassword(database * db, int id, char password[255]);
 
+int updateUserAuth(database * db, int id, char token[255]);
+
 void deleteUser(database * db, int id);
 
 int getUsernameList(database * db, int firstIndex, int amount, char dest[][255]);

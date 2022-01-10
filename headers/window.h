@@ -82,6 +82,8 @@ void onPasswordCancel(GtkButton *cancel, gpointer data);
 
 void callPasswordDialog(GtkButton * button, gpointer data);
 
+void onYoutubeLogin(GtkButton * button, gpointer data);
+
 void changeUserConfig(GtkSwitch* useDefault, gpointer data);
 
 #endif //CLIENTSRC_C_WINDOW_H

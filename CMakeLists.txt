@@ -51,9 +51,12 @@ link_directories(${OpenSSL_LIBRARY_DIRS})
 add_definitions(${OpenSSL_CFLAGS_OTHER})
 target_link_libraries(ProjetC ${OpenSSL_LIBRARIES})
 
-# Add openssl libs to project
+# Add CURL libs to project
 find_package(CURL)
 include_directories(${CURL_INCLUDE_DIRS})
 link_directories(${CURL_LIBRARY_DIRS})
 add_definitions(${CURL_CFLAGS_OTHER})
 target_link_libraries(ProjetC ${CURL_LIBRARIES})
+
+#Add winsock2 to project
+target_link_libraries(ProjetC wsock32 ws2_32)

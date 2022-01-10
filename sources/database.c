@@ -141,6 +141,25 @@ int updateUserPassword(database * db, int id, char password[255]){
 }
 
 /**
+ * @usage updates a users' refreshToken
+ * @param db -- database
+ * @param id -- id of the user
+ * @param path -- new refreshToken
+ * @return Change_ok if change successful, Change_no if unsuccessful
+ */
+
+int updateUserAuth(database * db, int id, char token[255]){
+    char *delete = "UPDATE users SET yt_token = @token WHERE _id = @id;";
+
+    db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, delete, -1, &db->statement,0);
+    sqlite3_bind_int(db->statement, sqlite3_bind_parameter_index(db->statement, "@id"), id);
+    sqlite3_bind_text(db->statement, sqlite3_bind_parameter_index(db->statement, "@token"), token, strlen(token), NULL);
+    sqlite3_step(db->statement);
+    sqlite3_finalize(db->statement);
+    return CHANGE_OK;
+}
+
+/**
  * @usage Will delete a user from the database by, in order, deleting from rel_ch_feed, then feed then finally the user
  * @param db -- database structure
  * @param id -- user id to delete

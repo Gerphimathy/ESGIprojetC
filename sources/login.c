@@ -29,7 +29,7 @@ int login(database *db, session *targetSession, char username[255], char passwor
     int id;
 
     hashPass(password, hash);
-    strcpy(req ,"SELECT _id, username, yt_token, twt_token, conf_file FROM users WHERE (username = @username AND password = @pass);");
+    strcpy(req ,"SELECT _id, username, yt_token,  conf_file FROM users WHERE (username = @username AND password = @pass);");
     db->databaseConnection = sqlite3_prepare_v2(db->databaseHandle, req, -1, &db->statement,0);
 
     if (db->databaseConnection == SQLITE_OK){
@@ -42,12 +42,15 @@ int login(database *db, session *targetSession, char username[255], char passwor
 
             strcpy(targetSession->username, sqlite3_column_text(db->statement, 1));
 
-            strcpy(targetSession->yt_token, sqlite3_column_text(db->statement, 2));
-            strcpy(targetSession->twt_token, sqlite3_column_text(db->statement, 3));
+            strcpy(targetSession->auth.refreshToken, sqlite3_column_text(db->statement, 2));
 
-            strcpy(targetSession->config.path, sqlite3_column_text(db->statement, 4));
+            strcpy(targetSession->config.path, sqlite3_column_text(db->statement, 3));
 
             sqlite3_finalize(db->statement);
+
+            if(strcmp(targetSession->auth.refreshToken,"none") != 0){
+                refresh_token(&(targetSession->auth));
+            }
 
             if (strcmp(targetSession->config.path,"none") == 0){
                 fileConfig defaultConfig;
